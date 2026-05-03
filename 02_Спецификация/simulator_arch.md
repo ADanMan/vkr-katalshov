@@ -1,6 +1,6 @@
 # Архитектура симулятора стенда S1
 
-> Phase 2 → Phase 3. Дата: 2026-05-03. Автор: Катальшов Д.А., К2-81Б. Документ описывает архитектуру Python-симулятора, который генерирует event-log для FLV-модуля. Прямой вход в Phase 3 (реализация).
+> Phase 2 → Phase 3. Дата: 2026-05-03. Автор: Катальшов Д.А., К2-81Б. Документ описывает архитектуру Python-симулятора, который генерирует event-log для FLV-модуля. Прямой вход в Phase 3 (реализация). Инженерный стек и интерактивная визуализация — см. ADR-003.
 
 ---
 
@@ -9,10 +9,10 @@
 Симулятор воспроизводит работу реального измерительного стенда S1 (термокамера со стабилизацией PT100) и пишет event-log в формате Phase 2 (`event_log_format.md`). Используется как:
 
 1. Источник трасс для Phase 5 (100+ прогонов с инъекциями нарушений).
-2. Демонстрация в Phase 7 (запись прогонов на защите).
+2. Демонстрация в Phase 7 (запись прогонов на защите) — через две интерактивные view (3D-сцена + Dash-дашборд).
 3. Эталонная проверка FLV-модуля Phase 4 (известные ground-truth трассы).
 
-Принцип: **детерминированность + физическая реалистичность**. При фиксированном seed прогон полностью воспроизводим; при этом физическая модель опирается на ГОСТ 6651-2009 (PT100), типовые параметры лабораторных термокамер, гауссовский шум сенсора, квантование 16-битного АЦП.
+Принцип: **детерминированность + физическая корректность**. При фиксированном seed прогон полностью воспроизводим. При этом физическая модель опирается на ГОСТ 6651-2009 (PT100), типовые параметры лабораторных термокамер, окрашенный шум сенсора, квантование 16-битного АЦП — реализовано через профессиональные библиотеки `scipy.integrate` (ODE), `scipy.signal` (шум), `pint` (единицы), `uncertainties` (погрешности), `python-control` (PID-контур), `simpy` (event-driven FSM). Подробное обоснование — `99_Артефакты/ADR_003_simulator_engineering_stack.md`.
 
 ---
 
@@ -20,17 +20,22 @@
 
 ```
 03_Симулятор/
+├── pyproject.toml            ← фиксированные версии зависимостей
+├── README.md                 ← запуск, примеры, скриншоты
 ├── sim/
 │   ├── __init__.py
-│   ├── config.py             ← все физические параметры в одном месте
-│   ├── thermal_model.py      ← ODE 1-го порядка (теплопередача)
-│   ├── sensor.py             ← PT100 + квантование АЦП + шум
-│   ├── scenario_runner.py    ← FSM-исполнитель методики
+│   ├── config.py             ← все физические параметры через pint (с единицами)
+│   ├── thermal_model.py      ← ODE через scipy.integrate.solve_ivp (RK45/LSODA)
+│   ├── uncertainty_model.py  ← propagation погрешностей через uncertainties
+│   ├── sensor.py             ← PT100 (ГОСТ 6651) + АЦП с шумом, дрейфом, квантованием
+│   ├── control_loop.py       ← PID через python-control + Bode/Nyquist
+│   ├── scenario_runner.py    ← FSM на simpy (event-driven)
 │   ├── injector.py           ← модификации для 7 кодов нарушений
-│   └── event_logger.py       ← запись в JSONL по формату Phase 2
+│   └── event_logger.py       ← JSONL по формату Phase 2
 ├── viz/
-│   ├── 3d_view.html          ← Three.js визуализация
-│   └── plot_run.py           ← matplotlib-fallback
+│   ├── 3d_pyvista.py         ← интерактивная 3D-сцена (pyvista + trame, в браузере)
+│   ├── dashboard_dash.py     ← Plotly Dash live-дашборд с FSM-state
+│   └── plot_static.py        ← matplotlib + seaborn для PNG в ПЗ
 ├── scenarios/
 │   ├── s1_correct.yaml       ← эталон
 │   ├── s1_seq_miss.yaml
@@ -42,11 +47,12 @@
 │   └── s1_range_mism.yaml
 ├── tests/
 │   ├── test_thermal.py
+│   ├── test_uncertainty.py
 │   ├── test_sensor.py
+│   ├── test_control.py
 │   ├── test_runner.py
 │   └── test_injector.py
-├── cli.py                    ← python -m sim.run --scenario X --inject Y --seed Z
-└── pyproject.toml
+└── cli.py                    ← python -m sim.run --scenario X --inject Y --seed Z
 ```
 
 ---
