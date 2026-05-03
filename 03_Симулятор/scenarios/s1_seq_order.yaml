@@ -1,0 +1,7 @@
+id: s1_seq_order
+description: Нарушение порядка переходов FSM — MEASURE начат раньше HOLD
+based_on: ../../02_Спецификация/dsl_v1.yaml
+inject:
+  code: SEQ_ORDER
+expected_violation: SEQ_ORDER
+overrides: {}

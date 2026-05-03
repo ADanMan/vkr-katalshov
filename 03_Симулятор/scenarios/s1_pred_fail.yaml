@@ -1,0 +1,7 @@
+id: s1_pred_fail
+description: Не выполнен предикат стабилизации — переход HOLD → MEASURE при |dT/dt| = 0.045 °C/c (порог 0.02)
+based_on: ../../02_Спецификация/dsl_v1.yaml
+inject:
+  code: PRED_FAIL
+expected_violation: PRED_FAIL
+overrides: {}

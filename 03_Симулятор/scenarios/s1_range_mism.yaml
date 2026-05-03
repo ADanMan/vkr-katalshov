@@ -1,0 +1,7 @@
+id: s1_range_mism
+description: Параметр T_set = 700 °C вне допустимого диапазона камеры (предел 250 °C)
+based_on: ../../02_Спецификация/dsl_v1.yaml
+inject:
+  code: RANGE_MISM
+expected_violation: RANGE_MISM
+overrides: {}

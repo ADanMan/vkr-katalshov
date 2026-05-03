@@ -1,0 +1,7 @@
+id: s1_time_over
+description: Превышение допустимой длительности HOLD — 700 c при максимуме 600 c
+based_on: ../../02_Спецификация/dsl_v1.yaml
+inject:
+  code: TIME_OVER
+expected_violation: TIME_OVER
+overrides: {}
