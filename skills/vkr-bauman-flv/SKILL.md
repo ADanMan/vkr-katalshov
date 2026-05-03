@@ -141,20 +141,36 @@ license: Compiled from open-source skills (MIT, CC BY 4.0) and Bauman public tem
 - `references/statistical_analysis_flv.md` — статистика эксперимента: формулы TPR/TNR/FPR/FNR, McNemar, Wilcoxon, Cohen's d, bootstrap CI.
 - `references/flv_domain_knowledge.md` — ключевые источники по FLV/RV/STL и типовые цитирования.
 - `references/electrical_schematics.md` — как делать электрические/блок-схемы стенда: schemdraw (Python) для принципиальных, Mermaid для структурных, шаблоны кода для PT100 4-wire и блок-схемы стенда S1.
+- `references/sources_compliance_rf.md` — чек-лист по 4 категориям правового риска РФ (иноагенты, нежелательные организации, экстремистские материалы, LGBT-движение), безопасные/нерекомендуемые источники, структура библиографии. Применять перед каждым коммитом ≥ 5 записей в `BIBLIO.bib` и перед сдачей ПЗ.
 
-## 11. Скрипты (исполняются по необходимости)
+## 11. Агенты (готовые subagent-prompt'ы для делегирования)
+
+В `agents/` лежат переиспользуемые prompt-шаблоны. Используй через Agent tool с `subagent_type: general-purpose`. См. `agents/_README.md` для полного списка.
+
+| Агент | Когда |
+|---|---|
+| `gost-fetcher.md` | Скачать пачку ГОСТов с открытых источников |
+| `literature-searcher.md` | Найти 8-10 научных работ по теме, BibTeX через CrossRef |
+| `chapter-writer.md` | Написать черновик подглавы по outline + sources |
+| `bibtex-validator.md` | Проверить BIBLIO.bib на полноту полей |
+| `figure-generator.md` | Создать Mermaid/schemdraw диаграмму |
+| `stat-analyzer.md` | Прогнать статистику Phase 5 |
+| `paper-auditor.md` | Аудит главы перед сдачей |
+| `compliance-checker.md` | Проверка источников по 4 категориям РФ-законодательства |
+
+## 12. Скрипты (исполняются по необходимости)
 
 - `scripts/doi_to_bibtex.py` — DOI/PMID/arXiv ID → запись BibTeX через CrossRef API. Использование: `python doi_to_bibtex.py 10.1007/978-3-540-30206-3_12 >> BIBLIO.bib`.
 - `scripts/validate_bibtex_gost.py` — проверка BibTeX-записей на соответствие минимальным полям ГОСТ 7.0.5-2008 (автор, год, название, выходные данные, страницы для статей).
 - `scripts/md_to_docx_gost.py` — конвертация Markdown глав в `.docx` со стилем ГОСТ 7.32-2017 (TNR 14, 1.5, поля 30/10/20/20). Использует pandoc + reference.docx.
 - `scripts/mermaid_to_png.py` — рендер `.mmd` в `.png` 300 DPI для вставки в ПЗ. Требует mermaid-cli.
 
-## 12. Assets
+## 13. Assets
 
 - `assets/reference_gost.docx` — `.docx`-шаблон для pandoc со стилями по ГОСТ 7.32 (адаптация бланка К4).
 - `assets/chapter_checklist.md` — обязательный чек-лист перед сдачей главы (объём, ссылки, рисунки, таблицы).
 - `assets/bibtex_template.bib` — шаблон записей по типам (article, book, inproceedings, manual, online, gost).
 
-## 13. Финальный совет
+## 14. Финальный совет
 
 Эта работа — про скорость и системность, а не про идеализацию. У Данилы остаётся ~6-8 недель. Всегда задавай вопрос «закрывает ли это шаг к защите?» и предпочитай рабочий черновик аккуратной незавершёнке.
