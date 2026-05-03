@@ -1,0 +1,76 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+env/
+.env
+.tox/
+.coverage
+.pytest_cache/
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Editors / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.cursor/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# LaTeX (если будем собирать промежуточные tex)
+*.aux
+*.log
+*.out
+*.toc
+*.bbl
+*.blg
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+
+# Word backups
+~$*.docx
+~$*.pptx
+~$*.xlsx
+
+# Большие данные экспериментов — храним метаданные, бинарь не коммитим
+05_Эксперименты/runs/*.jsonl
+05_Эксперименты/runs/raw/
+!05_Эксперименты/runs/_metadata.csv
+!05_Эксперименты/runs/.gitkeep
+
+# Видео и тяжёлые скриншоты
+*.mp4
+*.mov
+*.avi
+07_Презентация/*.mp4
+
+# Локальные временные файлы
+.tmp/
+tmp/
+.cache/
+
+# Cowork session artifacts (не должны попадать в репозиторий)
+.local-agent-mode-sessions/
+# .claude/ — НЕ исключаем целиком: внутри может лежать локальный мирror скилла.
+# Если в .claude/ появятся cowork-кеши — добавь их адресно.
+
+# Личное (если будет нужно)
+.notes_personal.md
