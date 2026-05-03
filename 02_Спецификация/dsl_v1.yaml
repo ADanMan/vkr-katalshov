@@ -1,0 +1,192 @@
+# DSL v1 — нормативная модель измерительного процесса
+# Стенд S1: термокамера со стабилизацией PT100
+#
+# Этот файл — пример полной DSL-спецификации, который проходит валидацию
+# по flv_dsl.schema.json и используется как вход для FLV-модуля и для
+# контроллера сценария симулятора.
+#
+# Параметры взяты из 03_Симулятор/_выбор_стенда.md и калиброваны по
+# ГОСТ 6651-2009 (PT100), ГОСТ Р 8.563-2009 (методики измерений),
+# ГОСТ 8.207-76 (обработка результатов).
+
+$schema: "./flv_dsl.schema.json"
+
+meta:
+  id: S1-temp-stabilization-v1
+  version: 1.0
+  unit_system: SI
+  date: 2026-05-03
+  author: "Катальшов Д.А., К2-81Б"
+  refs:
+    - "ГОСТ 6651-2009"
+    - "ГОСТ Р 8.563-2009"
+    - "ГОСТ 8.207-76"
+
+process:
+  name: temperature_measurement_with_stabilization
+  description: >
+    Прогрев образца до целевой температуры T_set, выдержка не менее
+    t_hold_min секунд при условии стабилизации |dT/dt| <= delta_stable,
+    далее съём не менее N_min отсчётов температуры.
+
+# Параметры процесса (используются в guards, time-constraints, predicates)
+parameters:
+  T_set:
+    type: float
+    unit: "°C"
+    min: 30
+    max: 250
+    default: 150
+    description: "Заданная температура камеры"
+  T_min:
+    type: float
+    unit: "°C"
+    min: 20
+    max: 200
+    default: 50
+    description: "Порог перехода HEAT → HOLD"
+  delta_stable:
+    type: float
+    unit: "°C/s"
+    min: 0.001
+    max: 0.5
+    default: 0.02
+    description: "Порог стабилизации для перехода HOLD → MEASURE"
+  t_hold_min:
+    type: int
+    unit: "s"
+    min: 60
+    max: 3600
+    default: 300
+    description: "Минимальная длительность HOLD до перехода в MEASURE"
+  t_hold_max:
+    type: int
+    unit: "s"
+    min: 300
+    max: 7200
+    default: 600
+    description: "Максимальная длительность HOLD"
+  N_min:
+    type: int
+    min: 5
+    max: 1000
+    default: 20
+    description: "Минимальное число отсчётов в MEASURE"
+  T_set_max:
+    type: float
+    unit: "°C"
+    default: 250
+    description: "Предельно допустимая T_set (диапазон камеры)"
+
+# Состояния FSM
+states:
+  - name: INIT
+    required: true
+    description: "Инициализация оборудования, проверка готовности"
+  - name: HEAT
+    required: true
+    description: "Прогрев камеры до T_set"
+  - name: HOLD
+    required: true
+    description: "Выдержка с условием стабилизации"
+  - name: MEASURE
+    required: true
+    description: "Сбор N_min отсчётов температуры"
+  - name: POST
+    required: true
+    description: "Завершение, выгрузка результатов"
+
+# Переходы между состояниями
+transitions:
+  - id: t1_init_to_heat
+    from: INIT
+    to: HEAT
+    guard: "device_ready == true"
+    description: "Старт прогрева после готовности оборудования"
+
+  - id: t2_heat_to_hold
+    from: HEAT
+    to: HOLD
+    guard: "T >= T_min"
+    description: "Достигнута пороговая температура — начало выдержки"
+
+  - id: t3_hold_to_measure
+    from: HOLD
+    to: MEASURE
+    guard: "abs(dT_dt) <= delta_stable"
+    time:
+      min: 300       # = parameters.t_hold_min
+      max: 600       # = parameters.t_hold_max
+    description: "Стабилизация подтверждена, длительность HOLD в окне"
+
+  - id: t4_measure_to_post
+    from: MEASURE
+    to: POST
+    guard: "N >= N_min"
+    description: "Накоплено достаточно отсчётов"
+
+# Дополнительные проверки (вне graph-структуры FSM)
+checks:
+  - id: c1_sequence
+    kind: sequence
+    must_include: [INIT, HEAT, HOLD, MEASURE, POST]
+    must_be_in_order: true
+    description: "Все 5 состояний пройдены в указанном порядке"
+
+  - id: c2_hold_duration
+    kind: timing
+    state: HOLD
+    min_duration: 300
+    max_duration: 600
+    unit: "s"
+    description: "Длительность HOLD ∈ [300; 600] с"
+
+  - id: c3_stable_predicate
+    kind: predicate
+    when: "transition(HOLD->MEASURE)"
+    condition: "abs(dT_dt) <= delta_stable"
+    description: "Производная температуры по времени в момент перехода в окне"
+
+  - id: c4_n_samples
+    kind: predicate
+    when: "state == POST"
+    condition: "N_collected >= N_min"
+    description: "Число собранных отсчётов не меньше N_min"
+
+  - id: c5_temperature_range
+    kind: range
+    variable: T_set
+    min: 30
+    max: T_set_max
+    description: "Заданная температура в допустимом диапазоне камеры"
+
+# Каталог нарушений (детализация — в violations_catalog.md)
+violations_catalog:
+  SEQ_MISS:
+    severity: critical
+    message: "Пропущен обязательный шаг последовательности"
+    related_check: c1_sequence
+  SEQ_ORDER:
+    severity: critical
+    message: "Нарушен порядок переходов FSM"
+    related_check: c1_sequence
+  TIME_UNDER:
+    severity: critical
+    message: "Длительность состояния меньше нормативного минимума"
+    related_check: c2_hold_duration
+  TIME_OVER:
+    severity: warning
+    message: "Длительность состояния больше допустимого максимума"
+    related_check: c2_hold_duration
+  PRED_FAIL:
+    severity: critical
+    message: "Нарушен предикат стабилизации"
+    related_check: c3_stable_predicate
+  N_TOO_LOW:
+    severity: critical
+    message: "Недостаточное число отсчётов измерения"
+    related_check: c4_n_samples
+  RANGE_MISM:
+    severity: critical
+    message: "Параметр процесса вне допустимого диапазона"
+    related_check: c5_temperature_range
