@@ -1,0 +1,89 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vkr-katalshov-sim"
+version = "0.1.0"
+description = "Симулятор стенда S1 (термокамера со стабилизацией PT100) для ВКР Катальшова Д.А., К2-81Б"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    {name = "Катальшов Д.А.", email = "adanman386@gmail.com"}
+]
+license = {text = "Academic-only"}
+keywords = ["FLV", "measurement", "metrology", "PT100", "thermal", "FSM", "scipy", "simpy"]
+
+# Ядро симуляции
+dependencies = [
+    "numpy>=1.26",
+    "scipy>=1.11",          # solve_ivp для ODE, signal для шума и фильтров
+    "simpy>=4.1",           # event-driven discrete-event simulation для FSM
+    "pint>=0.23",           # строгая работа с единицами измерения
+    "uncertainties>=3.1.7", # propagation погрешностей в нелинейных цепях
+    "control>=0.9.4",       # python-control: передаточные функции, PID, Bode
+    "pyyaml>=6.0",          # YAML-сценарии и DSL
+    "jsonschema>=4.20",     # валидация event-log и DSL
+    "pandas>=2.1",          # таблицы метаданных прогонов
+    "click>=8.1",           # CLI
+    "rich>=13.7",           # цветной вывод в консоль
+]
+
+[project.optional-dependencies]
+# Интерактивная 3D-визуализация
+viz3d = [
+    "pyvista>=0.43",        # 3D-сцена через VTK
+    "trame>=3.4",           # web-обёртка для pyvista
+    "trame-vtk>=2.6",
+    "trame-vuetify>=2.4",
+]
+
+# Live dashboard
+dashboard = [
+    "plotly>=5.18",
+    "dash>=2.16",
+    "dash-bootstrap-components>=1.5",
+]
+
+# Публикационные графики
+plots = [
+    "matplotlib>=3.8",
+    "seaborn>=0.13",
+]
+
+# Тесты
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.2",
+    "mypy>=1.8",
+]
+
+[project.scripts]
+sim = "sim.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/ADanMan/vkr-katalshov"
+Repository = "https://github.com/ADanMan/vkr-katalshov"
+
+[tool.setuptools.packages.find]
+include = ["sim*", "viz*"]
+exclude = ["tests*", "scenarios*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -q --strict-markers --cov=sim --cov-report=term-missing"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "SIM", "RUF"]
+ignore = ["E501"]  # длина строк — частично освобождаем для читаемости формул
+
+[tool.mypy]
+python_version = "3.11"
+strict = false
+ignore_missing_imports = true
