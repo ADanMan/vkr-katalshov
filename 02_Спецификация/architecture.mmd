@@ -1,0 +1,71 @@
+flowchart TB
+    subgraph Input["Входные данные"]
+        SPEC_TXT["📄 Текст методики<br/>(ГОСТ/МИ/ТУ)"]
+        SCEN["💻 Программный сценарий<br/>(LabVIEW VI / TestStand seq /<br/>Python / Arduino)"]
+    end
+
+    subgraph LLM_Pre["LLM Роль 1 — Препроцессор"]
+        L1["LLM-extractor<br/>текст → DSL-черновик"]
+        SCH1["Schema validator<br/>flv_dsl.schema.json"]
+        HITL["Human-in-the-loop<br/>инженер утверждает"]
+    end
+
+    subgraph FLV_Core["FLV Core (детерминированно)"]
+        SL["Spec Loader<br/>YAML → внутренняя FSM-модель"]
+        LP["Log Parser<br/>JSONL → события + время"]
+        SM["Sequence Matcher<br/>SEQ_MISS, SEQ_ORDER"]
+        TM["Timing Matcher<br/>TIME_UNDER, TIME_OVER"]
+        PM["Predicate Matcher<br/>PRED_FAIL, N_TOO_LOW, RANGE_MISM"]
+        VA["Verdict Aggregator<br/>OK / OK_WITH_WARNINGS / FAIL"]
+    end
+
+    subgraph Stand["ИИС / стенд"]
+        CTRL["Контроллер сценария<br/>FSM execution"]
+        HOOK["Event Logger Hook"]
+        LOG["📝 event-log.jsonl"]
+    end
+
+    subgraph LLM_Post["LLM Роль 3 — Постпроцессор"]
+        L3["LLM-explainer<br/>verdict + контекст →<br/>human-readable объяснение"]
+        AF["Анти-галл фильтр<br/>проверка цифр-якорей"]
+    end
+
+    subgraph Output["Выход"]
+        VERD["FLV-сертификат<br/>JSON + Markdown"]
+        ARCH["📦 Архив прогона<br/>с привязкой к ГОСТ"]
+    end
+
+    SPEC_TXT --> L1
+    L1 --> SCH1
+    SCH1 -->|valid| HITL
+    SCH1 -->|invalid| L1
+    HITL --> SL
+
+    SCEN --> CTRL
+    CTRL --> HOOK
+    HOOK --> LOG
+    LOG --> LP
+
+    SL --> SM
+    SL --> TM
+    SL --> PM
+    LP --> SM
+    LP --> TM
+    LP --> PM
+
+    SM --> VA
+    TM --> VA
+    PM --> VA
+
+    VA --> L3
+    L3 --> AF
+    AF --> VERD
+    VERD --> ARCH
+
+    classDef llm fill:#fff4e6,stroke:#ff8c00,stroke-width:2px
+    classDef det fill:#e6f4ff,stroke:#0066cc,stroke-width:2px
+    classDef hitl fill:#ffe6f0,stroke:#cc0066,stroke-width:2px
+
+    class L1,L3,AF llm
+    class SL,LP,SM,TM,PM,VA det
+    class HITL hitl
