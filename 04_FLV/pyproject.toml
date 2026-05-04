@@ -1,0 +1,113 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vkr-katalshov-flv"
+version = "0.1.0"
+description = "Pluggable-фреймворк функционально-логической верификации программных моделей измерительных процессов в составе ИИС. ВКР Катальшова Д.А., К2-81Б."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    {name = "Катальшов Д.А.", email = "adanman386@gmail.com"}
+]
+license = {text = "Academic-only"}
+keywords = [
+    "FLV", "runtime-verification", "STL", "MTL", "FSM", "metrology",
+    "ИИС", "pluggable-framework",
+]
+
+dependencies = [
+    "pyyaml>=6.0",
+    "jsonschema>=4.20",
+    "simpleeval>=0.9",   # safe-eval для предикатов в matchers/predicate.py
+    "click>=8.1",
+    "rich>=13.7",
+    "pydantic>=2.5",     # типизированные контракты ядра + structured LLM output
+]
+
+[project.optional-dependencies]
+# LLM-провайдеры (роли 1 и 3 по ADR-002)
+llm = [
+    "openai>=1.30",      # SDK совместим с OpenRouter
+    "httpx>=0.27",
+    "tenacity>=8.2",
+]
+
+# STL-расширение через RTAMT (опциональный matcher по ADR-004)
+stl = [
+    "rtamt>=0.4",
+]
+
+# Адаптер LabVIEW (заглушка; полноценный — post-defense)
+labview = [
+    "npTDMS>=1.9",
+]
+
+# Тесты + покрытие
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.2",
+    "mypy>=1.8",
+]
+
+# Бенчмарки
+bench = [
+    "pyperf>=2.6",
+]
+
+[project.scripts]
+flv = "flv.__main__:main"
+
+# ─────────────────────────────────────────────────────────────────────
+# Plugin entry-points (ADR-004): четыре точки расширения фреймворка.
+# Сторонние пакеты могут регистрировать дополнительные реализации
+# через свои pyproject.toml без изменения ядра.
+# ─────────────────────────────────────────────────────────────────────
+
+[project.entry-points."flv.source_adapter"]
+jsonl = "flv.adapters.jsonl:JsonlAdapter"
+
+[project.entry-points."flv.dsl_adapter"]
+yaml = "flv.dsl.yaml_adapter:YamlDslAdapter"
+
+[project.entry-points."flv.matcher"]
+sequence = "flv.matchers.sequence:SequenceMatcher"
+timing = "flv.matchers.timing:TimingMatcher"
+predicate = "flv.matchers.predicate:PredicateMatcher"
+
+[project.entry-points."flv.llm_provider"]
+openrouter = "flv.llm.openrouter:OpenRouterProvider"
+mock = "flv.llm.mock:MockProvider"
+
+[project.urls]
+Homepage = "https://github.com/ADanMan/vkr-katalshov"
+Repository = "https://github.com/ADanMan/vkr-katalshov"
+
+[tool.setuptools.packages.find]
+include = ["flv*"]
+exclude = ["tests*", "benchmarks*", "docs*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -q --strict-markers --cov=flv --cov-report=term-missing"
+markers = [
+    "unit: юниты модулей",
+    "integration: интеграционные тесты на трассах из 03_Симулятор",
+    "llm: тесты, требующие реального LLM-провайдера (skip без API key)",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "SIM", "RUF"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = false
+ignore_missing_imports = true
