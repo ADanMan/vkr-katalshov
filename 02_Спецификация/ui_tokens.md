@@ -19,17 +19,17 @@
 ┌─────────────────────────────────────────────────────────────────┐
 │  [≡]  Симулятор FLV · s1_correct · seed 42  [t][T][FSM] [RU/EN]│  ← toolbar 64 px
 ├──────────┬──────────────────────────────────────────────────────┤
-│          │                                                      │
-│ Drawer   │        3D viewport (PyVista plotter_ui)              │
-│ (280 px, │                                                      │
-│ collap-  │        ┌────────────────────────┐                    │
-│ sible)   │        │  [Термокамера, куб]    │   colorbar →       │
-│          │        │     [Образец, цил.]    │                    │
-│ Параметры│        └────────────────────────┘                    │
-│ прогона  │                                                      │
-│          │   Легенда: ▭ Термокамера 1×1×1 м                     │
-│ scenario │           ◯ Образец Ø100×200 мм                      │
-│ seed     │                                                      │
+│          │                              ┌──────────────────────┐│
+│ Drawer   │                              │ ● PT100 · ГОСТ 6651  ││
+│ (280 px, │   3D viewport                │                      ││
+│ collap-  │    ┌────────────────────┐    │   149.84 °C          ││
+│ sible)   │    │  [Термокамера]     │    │                      ││
+│          │    │  [Образец]         │    │ T_set: 150.00        ││
+│ Параметры│    └────────────────────┘    │ ΔT:    −0.16         ││
+│ прогона  │                              │ |dT/dt|: 0.02 К/с    ││
+│          │   Легенда сцены              └──────────────────────┘│
+│ scenario │                                  ↑ instrument panel  │
+│ seed     │   colorbar →                                         │
 │ ...      │                                                      │
 ├──────────┴──────────────────────────────────────────────────────┤
 │  ⏮ ⏪ ▶/⏸ ⏩ ⏭   ▬▬▬▬▬▬▬▬◉▬▬▬▬   00:00:00 / 00:10:37          │  ← footer 88 px
@@ -169,7 +169,7 @@
 
 ### 4.3 Viewport
 
-3D-сцена через `pyvista.trame.ui.plotter_ui(plotter, mode="trame")`.
+3D-сцена через `pyvista.trame.ui.plotter_ui(plotter, mode="trame")`. Поверх viewport'а в правом-верхнем углу — приборная панель датчика PT100 (см. §4.5).
 
 **Сцена:**
 - `plotter.set_background("#FFFFFF")`.
@@ -183,6 +183,111 @@
 **Контейнер:**
 - `<div role="application" aria-label="3D-визуализация термокамеры с образцом" tabindex="-1">`.
 - `tabindex="-1"` — viewport не входит в tab-цепочку (избегаем focus-trap).
+
+### 4.5 Приборная панель датчика (Sensor instrument panel)
+
+Поверх viewport'а — overlay-блок в правом-верхнем углу, имитирующий передний фронт цифрового термоконтроллера (Eurotherm 3216 / Omron E5CC / Fluke 8508A — общая визуальная парадигма промышленных приборов). Это главный визуальный носитель показаний датчика; через него комиссия читает специальность.
+
+**Положение и размер.** `position: absolute; top: 16 px; right: 16 px;` внутри viewport-контейнера. Минимум 280 × 156 px, максимум 320 × 200 px. На узких экранах (< 600 px) — переносится в footer над FSM-полосой.
+
+**Структура (сверху вниз):**
+
+```
+┌────────────────────────────────────┐
+│ ● PT100 · ГОСТ 6651-2009    [W₁₀₀] │  ← header 28 px: status dot + sensor type + standard
+├────────────────────────────────────┤
+│                                    │
+│   149.84  °C                       │  ← main reading 56 px height
+│                                    │
+│   ┌──────────────┬──────────────┐  │  ← secondary 44 px
+│   │ T_set        │ ΔT           │  │
+│   │ 150.00 °C    │ −0.16 °C     │  │
+│   └──────────────┴──────────────┘  │
+│   |dT/dt|: 0.02 K/c                │  ← rate row 24 px
+└────────────────────────────────────┘
+```
+
+**Tokens:**
+
+| Token | Hex/value | Применение |
+|---|---|---|
+| `color-instr-bg` | `#1C2128` | основной фон панели (instrument-grey) |
+| `color-instr-bg-header` | `#22272E` | header strip |
+| `color-instr-border` | `#373E47` | border 2 px solid + субтильный inner shadow |
+| `color-instr-text` | `#ADBAC7` | вторичные подписи (T_set, ΔT) |
+| `color-instr-text-dim` | `#768390` | header text, footer rate |
+| `color-instr-led-main` | `#76FF03` | основное значение T (light-green LED стиль) |
+| `color-instr-led-warn` | `#FFB300` | значение T при отклонении в HEAT |
+| `color-instr-led-error` | `#FF5252` | значение T вне диапазона / в HOLD с большим ΔT |
+| `color-instr-status-ok` | `#76FF03` | статус-индикатор: HOLD/MEASURE с ΔT < tolerance |
+| `color-instr-status-warn` | `#FFB300` | статус-индикатор: HEAT (приближение к set) |
+| `color-instr-status-idle` | `#768390` | статус-индикатор: INIT/POST |
+| `color-instr-status-error` | `#FF5252` | статус-индикатор: T out of range / HOLD с большим ΔT |
+
+**Typography:**
+
+| Контекст | Spec |
+|---|---|
+| Header text | `Roboto Mono`, 11 px, weight 500, uppercase, letter-spacing 1 px |
+| Main reading number | `Roboto Mono`, **40 px**, weight 600, `tabular-nums`, color `color-instr-led-main` |
+| Main reading unit (°C) | `Roboto Mono`, 18 px, weight 400, color `color-instr-text-dim`, vertical-align baseline |
+| Secondary labels (T_set, ΔT) | `Roboto Mono`, 10 px, uppercase, color `color-instr-text-dim` |
+| Secondary values | `Roboto Mono`, 16 px, weight 500, `tabular-nums`, color `color-instr-text` |
+| Rate row | `Roboto Mono`, 11 px, color `color-instr-text-dim` |
+
+Главное число — с `font-feature-settings: "tnum"` (моноширинные цифры). Специально без LED-imitation шрифта вроде `DSEG7` — те выглядят дёшево и не читаются на скриншотах для ПЗ. Roboto Mono на цветном фоне даёт чистый «лабораторный» вид без визуального китча.
+
+**Цвет main reading определяется по логике:**
+
+- `INIT` или `POST` → `color-instr-text-dim` (приглушённый, прибор «спит»);
+- `HEAT` → `color-instr-led-warn` (оранжевый, идёт нагрев);
+- `HOLD` или `MEASURE`:
+  - `|T - T_set| ≤ 1.0 °C` → `color-instr-led-main` (зелёный, в норме);
+  - `1.0 < |T - T_set| ≤ 5.0` → `color-instr-led-warn`;
+  - `|T - T_set| > 5.0` → `color-instr-led-error`.
+
+**Status dot** — кружок 10 px в header, цвет соответствует general-status:
+
+- `INIT/POST` → `color-instr-status-idle`;
+- `HEAT` → `color-instr-status-warn`;
+- `HOLD/MEASURE` с ΔT в норме → `color-instr-status-ok`;
+- любое out-of-range → `color-instr-status-error`.
+
+При ok-состоянии можно добавить `box-shadow: 0 0 4px <color>` — лёгкий glow, имитирующий светодиод.
+
+**Sensor badge `[W₁₀₀]`** — справа в header, моноширинная подпись `1.385`, отсылающая к коэффициенту W₁₀₀ для PT100 по ГОСТ 6651-2009. Это «клеймо стандарта» — для комиссии моментально считывается «настоящий PT100».
+
+**ARIA:**
+
+- Контейнер: `role="region" :aria-label="t.sensor_panel_aria"` (что-то вроде «Показания датчика PT100»).
+- Main reading: `role="status" aria-live="polite"`.
+- Status dot: `role="img" :aria-label="t.sensor_status[fsm_state]"`.
+
+**Респонсив:**
+
+- ≥ 1024 px viewport — overlay 320 × 200 px в правом-верхнем углу.
+- 600—1023 px — overlay 280 × 156 px.
+- < 600 px — панель уезжает в footer над FSM-полосой как отдельный блок 100% width × 96 px.
+
+**Микро-анимации:**
+
+- При смене FSM-state — main reading color меняется с `transition: color 200 ms ease-out`.
+- Status dot пульсирует (1 Hz, opacity 0.6 → 1.0) при `HEAT` (визуальная подсказка «процесс идёт»).
+- T_indicated, ΔT, |dT/dt| — без анимации, мгновенный update (это физические величины).
+
+**Локализация — добавить в TRANSLATIONS:**
+
+| Key | RU | EN |
+|---|---|---|
+| `sensor_panel_aria` | Показания датчика PT100 | PT100 sensor readings |
+| `sensor_label_set` | T_set | T_set |
+| `sensor_label_delta` | ΔT | ΔT |
+| `sensor_label_rate` | \|dT/dt\| | \|dT/dt\| |
+| `sensor_status.idle` | Прибор не активен | Idle |
+| `sensor_status.heat` | Идёт нагрев | Heating |
+| `sensor_status.ok` | В пределах допуска | Within tolerance |
+| `sensor_status.error` | Отклонение от уставки | Setpoint deviation |
+| `unit_K_per_s` | К/с | K/s |
 
 ### 4.4 Footer
 
@@ -431,6 +536,15 @@ Auto-play: 1 кадр event-log = `dt_log_s` физического времен
 | `strip_aria` | Фазы прогона: {labels} | Run phases: {labels} |
 | `injection_tooltip` | Инъекция: {code} | Injection: {code} |
 | `loading` | Загрузка прогона… | Loading run… |
+| `sensor_panel_aria` | Показания датчика PT100 | PT100 sensor readings |
+| `sensor_label_set` | T_set | T_set |
+| `sensor_label_delta` | ΔT | ΔT |
+| `sensor_label_rate` | \|dT/dt\| | \|dT/dt\| |
+| `sensor_status_idle` | Прибор не активен | Idle |
+| `sensor_status_heat` | Идёт нагрев | Heating |
+| `sensor_status_ok` | В пределах допуска | Within tolerance |
+| `sensor_status_error` | Отклонение от уставки | Setpoint deviation |
+| `unit_K_per_s` | К/с | K/s |
 | `err_file_not_found` | Не удалось открыть лог: {path}. Проверьте путь к файлу. | Could not open log: {path}. Check the file path. |
 | `err_no_temp` | Лог пуст или не содержит сигнала температуры. Проверьте, что сценарий запускался с включённым sensor-каналом T. | Log is empty or contains no temperature signal. Verify the scenario was run with the T sensor channel enabled. |
 | `err_no_deps` | Для 3D-визуализации требуются pyvista и trame. Установи: pip install -e ".[viz3d]" из 03_Симулятор/. Detail: {e} | 3D visualization requires pyvista and trame. Install: pip install -e ".[viz3d]" from 03_Симулятор/. Detail: {e} |
@@ -511,3 +625,4 @@ def _on_lang(lang: str, **_kwargs: Any) -> None:
 |---|---|---|
 | 2026-05-05 | v1.0 — начальная спецификация после design-critique + a11y + ux-copy | Катальшов Д.А. |
 | 2026-05-05 | v1.1 — добавлен раздел «Локализация», переключатель RU/EN, таблица переводов всех лейблов | Катальшов Д.А. |
+| 2026-05-05 | v1.2 — добавлена приборная панель датчика PT100 (overlay в правом-верхнем углу viewport'а), tokens для instrument-визуализации, цветовая логика main reading, status-dot, локализация шильдиков | Катальшов Д.А. |
