@@ -149,12 +149,16 @@ license: Compiled from open-source skills (MIT, CC BY 4.0) and Bauman public tem
 
 | Агент | Когда |
 |---|---|
+| `plan-sync.md` | **Начало сессии** — сверить ВКР_План.md с реальным состоянием репо |
 | `gost-fetcher.md` | Скачать пачку ГОСТов с открытых источников |
 | `literature-searcher.md` | Найти 8-10 научных работ по теме, BibTeX через CrossRef |
-| `chapter-writer.md` | Написать черновик подглавы по outline + sources |
+| `chapter-writer.md` | Написать черновик подглавы по outline + sources из BIBLIO.bib |
+| `code-to-chapter.md` | Написать главу 2 или 3 ПЗ напрямую из кода и спецификации |
 | `bibtex-validator.md` | Проверить BIBLIO.bib на полноту полей |
 | `figure-generator.md` | Создать Mermaid/schemdraw диаграмму |
-| `stat-analyzer.md` | Прогнать статистику Phase 5 |
+| `experiment-runner.md` | **Phase 5** — запустить симулятор+FLV, собрать results_raw.csv |
+| `stat-analyzer.md` | **Phase 5** — прогнать статистику (TPR/FPR/McNemar/CI) |
+| `benchmark-runner.md` | Замерить overhead FLV-модуля, таблица для главы 3 ПЗ |
 | `paper-auditor.md` | Аудит главы перед сдачей |
 | `compliance-checker.md` | Проверка источников по 4 категориям РФ-законодательства |
 

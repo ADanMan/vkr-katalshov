@@ -89,9 +89,29 @@ class YamlDslAdapter(DslAdapter):
 
     # ──────────────────────────────────────────────────────────────────
 
+    @staticmethod
+    def _normalize_data(data: dict[str, Any]) -> dict[str, Any]:
+        """Нормализовать краткие формы DSL до полных перед валидацией Schema.
+
+        Поддерживается краткая запись каталога нарушений::
+
+            violations_catalog:
+              CODE_X: "Сообщение"   →   CODE_X: {severity: critical, message: "Сообщение"}
+        """
+        cat = data.get("violations_catalog")
+        if isinstance(cat, dict):
+            normalized = {}
+            for code, v in cat.items():
+                if isinstance(v, str):
+                    normalized[code] = {"severity": "critical", "message": v}
+                else:
+                    normalized[code] = v
+            data = {**data, "violations_catalog": normalized}
+        return data
+
     def load(self, source: Path | str) -> Spec:
         """Загрузить и валидировать YAML, вернуть Spec."""
-        data = self._read_yaml(source)
+        data = self._normalize_data(self._read_yaml(source))
         errors = self._validate_obj(data)
         if errors:
             raise ValueError(
@@ -103,7 +123,7 @@ class YamlDslAdapter(DslAdapter):
     def validate(self, source: Path | str) -> list[str]:
         """Вернуть список ошибок валидации (пустой при успехе)."""
         try:
-            data = self._read_yaml(source)
+            data = self._normalize_data(self._read_yaml(source))
         except (yaml.YAMLError, OSError) as exc:
             return [f"Ошибка чтения {source}: {exc}"]
         errors = self._validate_obj(data)

@@ -109,6 +109,8 @@ class PredicateMatcher(BaseMatcher):
         if prev_event is not None:
             for k, v in prev_event.params.items():
                 ctx.setdefault(k, v)
+            for k, v in prev_event.signals.items():   # сигналы предыдущего события (T, dT_dt, …)
+                ctx.setdefault(k, v)
         return ctx
 
     @staticmethod

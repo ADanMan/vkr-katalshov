@@ -8,12 +8,16 @@
 |---|---|---|---|
 | `gost-fetcher.md` | Скачать пачку ГОСТов с открытых источников РФ | 5-7 мин | ~80k |
 | `literature-searcher.md` | Найти 8-10 научных работ по теме, BibTeX через CrossRef | 8-12 мин | ~190k |
-| `chapter-writer.md` | Написать черновик подглавы ВКР по outline + sources | 10-15 мин | ~150k |
+| `chapter-writer.md` | Написать черновик подглавы по outline + sources из BIBLIO.bib | 10-15 мин | ~150k |
+| `code-to-chapter.md` | Написать главу 2 или 3 ПЗ напрямую из кода и спецификации | 15-20 мин | ~200k |
 | `bibtex-validator.md` | Проверить BIBLIO.bib на полноту полей под ГОСТ 7.0.5 | 2-3 мин | ~30k |
 | `figure-generator.md` | Создать Mermaid-диаграмму или schemdraw-схему по описанию | 3-5 мин | ~50k |
+| `experiment-runner.md` | Запустить Phase 5: прогнать симулятор+FLV, собрать results_raw.csv | 10-20 мин | ~120k |
 | `stat-analyzer.md` | Прогнать статистику Phase 5 (TPR/FPR/McNemar/CI) на dataframe | 5-10 мин | ~80k |
+| `benchmark-runner.md` | Создать и запустить бенчмарки overhead FLV-модуля | 5-10 мин | ~80k |
 | `paper-auditor.md` | Аудит готовой главы перед сдачей: ГОСТ, цитирование, объём | 5-10 мин | ~100k |
 | `compliance-checker.md` | Проверить новые источники по 4 категориям РФ-законодательства | 3-5 мин | ~40k |
+| `plan-sync.md` | Сверить ВКР_План.md с реальным состоянием файлов репо | 3-5 мин | ~50k |
 
 ## Как использовать в Cowork / Claude Code
 

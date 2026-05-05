@@ -15,7 +15,7 @@ meta:
   id: S1-temp-stabilization-v1
   version: 1.0
   unit_system: SI
-  date: 2026-05-03
+  date: "2026-05-03"
   author: "Катальшов Д.А., К2-81Б"
   refs:
     - "ГОСТ 6651-2009"

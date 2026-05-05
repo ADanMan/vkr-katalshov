@@ -32,7 +32,8 @@ def test_pid_anti_windup_does_not_explode() -> None:
 
 @pytest.mark.unit
 def test_pid_reset_clears_state() -> None:
-    pid = PID(Kp=1.0, Ki=1.0, Kd=0.5)
+    # out_max=1000 — убираем насыщение, чтобы anti-windup не обнулил интегратор
+    pid = PID(Kp=1.0, Ki=1.0, Kd=0.5, out_min=-1000.0, out_max=1000.0)
     pid.update(setpoint=10.0, measured=0.0, dt_s=1.0)
     assert pid._integral != 0
     pid.reset()

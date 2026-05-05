@@ -7,7 +7,7 @@ name = "vkr-katalshov-flv"
 version = "0.1.0"
 description = "Pluggable-фреймворк функционально-логической верификации программных моделей измерительных процессов в составе ИИС. ВКР Катальшова Д.А., К2-81Б."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 authors = [
     {name = "Катальшов Д.А.", email = "adanman386@gmail.com"}
 ]
