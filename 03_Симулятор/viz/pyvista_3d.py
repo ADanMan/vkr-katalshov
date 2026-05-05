@@ -3,7 +3,7 @@ viz.pyvista_3d — интерактивная 3D-визуализация тер
 
 Стек: pyvista (геометрия + рендер) + trame (web UI) + Vuetify v2 + VTK.
 
-UI-спецификация — см. ``02_Спецификация/ui_tokens.md`` v1.1. Этот модуль
+UI-спецификация — см. ``02_Спецификация/ui_tokens.md`` v1.2. Этот модуль
 является эталонной реализацией спеки и должен оставаться с ней
 согласованным. Любые изменения UI начинаются с правки спеки.
 
@@ -12,6 +12,10 @@ UI-спецификация — см. ``02_Спецификация/ui_tokens.md
 * термокамера — прозрачный куб 1×1×1 м (`color="lightgray"`, `opacity=0.15`);
 * образец — цилиндр Ø100×200 мм; цвет берётся из colormap `plasma`
   по сигналу T_indicated_C (clim=[20, 250] °C);
+* приборная панель PT100 — overlay в правом-верхнем углу viewport'а
+  в стиле промышленного термоконтроллера: status dot, "PT100 · ГОСТ
+  6651-2009", крупное LED-style значение T_indicated, T_set, ΔT,
+  |dT/dt|;
 * colorbar справа от viewport'а;
 * легенда с подписями объектов сцены;
 * toolbar — заголовок, три chip'а (t / T / FSM), переключатель языка
@@ -62,6 +66,19 @@ DEFAULT_FSM_COLOR = "#9E9E9E"
 CMAP_NAME = "plasma"
 CMAP_CLIM = (20.0, 250.0)
 
+# Приборная панель PT100 (ui_tokens.md §4.5)
+# Допуск ΔT для определения «в пределах допуска» в HOLD/MEASURE.
+# 1 °C — типичная норма для термокамер класса 0.5 (ГОСТ 8.395-80).
+SENSOR_T_TOLERANCE_OK_C = 1.0
+SENSOR_T_TOLERANCE_WARN_C = 5.0
+# Окно сглаживания производной dT/dt в кадрах event-log'а.
+SENSOR_DT_WINDOW = 5
+# Цвета main reading и status dot.
+INSTR_LED_MAIN = "#76FF03"   # light-green LED — в норме
+INSTR_LED_WARN = "#FFB300"   # янтарный — нагрев / отклонение
+INSTR_LED_ERROR = "#FF5252"  # красный — большое отклонение
+INSTR_LED_IDLE = "#768390"   # серый — INIT/POST
+
 
 # ──────────────────────────────────────────────────────────────────────
 # Локализация (ui_tokens.md §13)
@@ -102,6 +119,15 @@ TRANSLATIONS: dict[str, dict[str, Any]] = {
         },
         "fsm_injection": "Инъекция",
         "loading": "Загрузка прогона…",
+        "sensor_panel_aria": "Показания датчика PT100",
+        "sensor_label_set": "T_set",
+        "sensor_label_delta": "ΔT",
+        "sensor_label_rate": "|dT/dt|",
+        "sensor_status_idle": "Прибор не активен",
+        "sensor_status_heat": "Идёт нагрев",
+        "sensor_status_ok": "В пределах допуска",
+        "sensor_status_error": "Отклонение от уставки",
+        "unit_K_per_s": "К/с",
     },
     "en": {
         "app_title": "FLV Simulator",
@@ -137,6 +163,15 @@ TRANSLATIONS: dict[str, dict[str, Any]] = {
         },
         "fsm_injection": "Injection",
         "loading": "Loading run…",
+        "sensor_panel_aria": "PT100 sensor readings",
+        "sensor_label_set": "T_set",
+        "sensor_label_delta": "ΔT",
+        "sensor_label_rate": "|dT/dt|",
+        "sensor_status_idle": "Idle",
+        "sensor_status_heat": "Heating",
+        "sensor_status_ok": "Within tolerance",
+        "sensor_status_error": "Setpoint deviation",
+        "unit_K_per_s": "K/s",
     },
 }
 
@@ -210,6 +245,32 @@ def _compute_fsm_segments(
     return [s for s in segments if s["duration_s"] > 0]
 
 
+def _compute_dT_dt(
+    track: list[tuple[float, float, str]],
+    window: int = SENSOR_DT_WINDOW,
+) -> list[float]:
+    """Численная производная dT/dt со сглаживанием по окну.
+
+    Возвращает массив той же длины, что и track. dT/dt[0] = 0; для
+    остальных — `(T[i] - T[i-window]) / (t[i] - t[i-window])` или
+    наименьшее доступное окно у начала траектории. Это имитирует
+    behaviour реальных PT-контроллеров, которые показывают rate как
+    moving average.
+    """
+    n = len(track)
+    if n < 2:
+        return [0.0] * n
+    out: list[float] = [0.0]
+    for i in range(1, n):
+        j = max(0, i - window)
+        dt = track[i][0] - track[j][0]
+        if dt > 0:
+            out.append((track[i][1] - track[j][1]) / dt)
+        else:
+            out.append(0.0)
+    return out
+
+
 def _detect_injection(
     scenario_id: str,
     filename: str,
@@ -243,6 +304,7 @@ def _extract_metadata(
         "n_events": len(events),
         "filename": jsonl_path.name,
         "sim_version": "",
+        "T_set_C": None,
     }
     if not events:
         return meta
@@ -256,11 +318,14 @@ def _extract_metadata(
     else:
         meta["scenario_id"] = run_id
 
-    # meta-блок есть только на RUN_START
+    # meta-блок есть только на RUN_START; параметры RUN_START содержат T_set
     for e in events[:5]:  # достаточно посмотреть начало
         m = e.get("meta") or {}
         if "simulator_version" in m and not meta["sim_version"]:
             meta["sim_version"] = str(m["simulator_version"])
+        p = e.get("params") or {}
+        if e.get("event") == "RUN_START" and "T_set" in p and meta["T_set_C"] is None:
+            meta["T_set_C"] = float(p["T_set"])
 
     # Seed конвенция: имя файла "scenario-NNN.jsonl" → 1000 + NNN, либо из run_id хвоста.
     fname_match = re.search(r"-(\d+)\.jsonl$", jsonl_path.name)
@@ -359,6 +424,125 @@ CSS_GLOBAL = """
     font-family: 'Roboto Mono', SFMono-Regular, monospace;
     font-variant-numeric: tabular-nums;
 }
+
+/* ── Instrument panel (PT100 sensor readings) ───────────────────── */
+.instr-panel {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    min-width: 280px;
+    max-width: 320px;
+    background: #1C2128;
+    border: 2px solid #373E47;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    font-family: 'Roboto Mono', SFMono-Regular, monospace;
+    z-index: 20;
+    user-select: none;
+    overflow: hidden;
+}
+.instr-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
+    background: #22272E;
+    border-bottom: 1px solid #373E47;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #768390;
+}
+.instr-status-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
+    background: #768390;
+    transition: background-color 200ms ease-out, box-shadow 200ms ease-out;
+    flex-shrink: 0;
+}
+.instr-status-dot.ok {
+    background: #76FF03;
+    box-shadow: 0 0 6px #76FF03;
+}
+.instr-status-dot.warn {
+    background: #FFB300;
+    box-shadow: 0 0 6px #FFB300;
+    animation: instr-pulse 1s infinite ease-in-out;
+}
+.instr-status-dot.error {
+    background: #FF5252;
+    box-shadow: 0 0 6px #FF5252;
+}
+@keyframes instr-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+.instr-header-left {
+    display: flex;
+    align-items: center;
+}
+.instr-badge-w100 {
+    color: #ADBAC7;
+    font-weight: 600;
+    background: #0D1117;
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid #373E47;
+    font-size: 10px;
+}
+.instr-main {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    padding: 14px 16px 6px;
+}
+.instr-main-value {
+    font-size: 40px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    transition: color 200ms ease-out;
+}
+.instr-main-unit {
+    font-size: 18px;
+    font-weight: 400;
+    color: #768390;
+    margin-left: 8px;
+}
+.instr-secondary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 12px;
+    padding: 6px 16px 4px;
+    border-top: 1px solid #2D333B;
+}
+.instr-sec-cell {
+    display: flex;
+    flex-direction: column;
+}
+.instr-sec-label {
+    font-size: 10px;
+    color: #768390;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.instr-sec-value {
+    font-size: 16px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: #ADBAC7;
+}
+.instr-rate {
+    padding: 4px 16px 10px;
+    font-size: 11px;
+    color: #768390;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
 """
 
 
@@ -399,6 +583,7 @@ def build_app(jsonl_path: Path) -> Any:  # noqa: PLR0915 — единая фаб
     raw_segments = _compute_fsm_segments(events)
     metadata = _extract_metadata(events, jsonl_path)
     injection = _detect_injection(metadata["scenario_id"], jsonl_path.name)
+    dT_dt_track = _compute_dT_dt(track)
 
     # ───── 3D-сцена ────────────────────────────────────────────────
     chamber = pv.Cube(
@@ -462,6 +647,16 @@ def build_app(jsonl_path: Path) -> Any:  # noqa: PLR0915 — единая фаб
     state.fsm_color = FSM_COLORS.get(state.fsm_state, DEFAULT_FSM_COLOR)
     state.playing = False
 
+    # ───── Sensor instrument panel state ──────────────────────────
+    T_set_C = metadata.get("T_set_C")
+    state.has_T_set = T_set_C is not None
+    state.T_set_C = float(T_set_C) if T_set_C is not None else 0.0
+    state.delta_T_C = float(state.T_C - state.T_set_C) if state.has_T_set else 0.0
+    state.dT_dt = float(dT_dt_track[0]) if dT_dt_track else 0.0
+    state.instr_main_color = INSTR_LED_IDLE
+    state.instr_status_class = "idle"
+    state.instr_status_text = TRANSLATIONS[initial_lang]["sensor_status_idle"]
+
     # Метаданные → state (для drawer'а).
     state.meta_scenario = metadata["scenario_id"] or "—"
     state.meta_stand = metadata["stand_id"] or "—"
@@ -516,6 +711,23 @@ def build_app(jsonl_path: Path) -> Any:  # noqa: PLR0915 — единая фаб
 
     # ───── Контроллеры ─────────────────────────────────────────────
 
+    def _sensor_status(fsm: str, T_C: float) -> tuple[str, str, str]:
+        """Вернуть (main_color, status_class, status_text_key) для приборной
+        панели согласно ui_tokens.md §4.5."""
+        if fsm in {"INIT", "POST"}:
+            return INSTR_LED_IDLE, "idle", "sensor_status_idle"
+        if not state.has_T_set:
+            return INSTR_LED_MAIN, "ok", "sensor_status_ok"
+        delta = abs(T_C - state.T_set_C)
+        if fsm == "HEAT":
+            return INSTR_LED_WARN, "warn", "sensor_status_heat"
+        # HOLD / MEASURE
+        if delta <= SENSOR_T_TOLERANCE_OK_C:
+            return INSTR_LED_MAIN, "ok", "sensor_status_ok"
+        if delta <= SENSOR_T_TOLERANCE_WARN_C:
+            return INSTR_LED_WARN, "warn", "sensor_status_error"
+        return INSTR_LED_ERROR, "error", "sensor_status_error"
+
     def _apply_frame(frame: int) -> None:
         i = max(0, min(int(frame), state.frame_max))
         t_rel, T_C, fsm = track[i]
@@ -525,6 +737,16 @@ def build_app(jsonl_path: Path) -> Any:  # noqa: PLR0915 — единая фаб
         state.fsm_human = TRANSLATIONS[state.lang]["fsm"].get(fsm, fsm)
         state.fsm_color = FSM_COLORS.get(fsm, DEFAULT_FSM_COLOR)
         state.counter_now = _fmt_time(t_rel)
+
+        # Sensor panel: ΔT, dT/dt, цвет main reading и статус-индикатор.
+        if state.has_T_set:
+            state.delta_T_C = float(T_C - state.T_set_C)
+        state.dT_dt = float(dT_dt_track[i]) if i < len(dT_dt_track) else 0.0
+        main_color, status_class, status_key = _sensor_status(str(fsm), float(T_C))
+        state.instr_main_color = main_color
+        state.instr_status_class = status_class
+        state.instr_status_text = TRANSLATIONS[state.lang][status_key]
+
         # Обновить scalar-поле образца — pyvista пересчитает цвет
         # через lookup table (cmap=plasma). Модифицируем in-place, потом
         # явно зовём Modified() — этим пайплайн VTK помечается dirty.
@@ -779,6 +1001,86 @@ def build_app(jsonl_path: Path) -> Any:  # noqa: PLR0915 — единая фаб
                 view = plotter_ui(plotter, mode="trame")
                 ctrl.view_update = view.update
 
+                # ── Instrument panel (PT100 sensor readings) ───────
+                # Overlay в правом-верхнем углу viewport-контейнера.
+                # Имитирует передний фронт промышленного термоконтроллера.
+                with trame_html.Div(
+                    classes="instr-panel",
+                    role="region",
+                    aria_label=("t.sensor_panel_aria",),
+                ):
+                    # Header strip: status dot + sensor type + W₁₀₀ badge
+                    with trame_html.Div(classes="instr-header"):
+                        with trame_html.Div(classes="instr-header-left"):
+                            trame_html.Span(
+                                classes=("'instr-status-dot ' + instr_status_class",),
+                                role="img",
+                                aria_label=("instr_status_text",),
+                            )
+                            trame_html.Span(
+                                children=["PT100 · ГОСТ 6651-2009"],
+                            )
+                        trame_html.Span(
+                            children=["W₁₀₀ = 1.385"],
+                            classes="instr-badge-w100",
+                        )
+
+                    # Main reading: T_indicated, large LED-style number
+                    with trame_html.Div(
+                        classes="instr-main",
+                        role="status",
+                        aria_live="polite",
+                    ):
+                        trame_html.Span(
+                            children=["{{ T_C.toFixed(2) }}"],
+                            classes="instr-main-value",
+                            style=("`color: ${instr_main_color};`",),
+                        )
+                        trame_html.Span(
+                            children=["°C"],
+                            classes="instr-main-unit",
+                        )
+
+                    # Secondary readings: T_set + ΔT
+                    with trame_html.Div(classes="instr-secondary"):
+                        # T_set cell
+                        with trame_html.Div(classes="instr-sec-cell"):
+                            trame_html.Span(
+                                children=["{{ t.sensor_label_set }}"],
+                                classes="instr-sec-label",
+                            )
+                            trame_html.Span(
+                                children=[
+                                    "{{ has_T_set ? "
+                                    "T_set_C.toFixed(2) + ' °C' : '—' }}",
+                                ],
+                                classes="instr-sec-value",
+                            )
+                        # ΔT cell
+                        with trame_html.Div(classes="instr-sec-cell"):
+                            trame_html.Span(
+                                children=["{{ t.sensor_label_delta }}"],
+                                classes="instr-sec-label",
+                            )
+                            trame_html.Span(
+                                children=[
+                                    "{{ has_T_set ? "
+                                    "(delta_T_C >= 0 ? '+' : '') + "
+                                    "delta_T_C.toFixed(2) + ' °C' : '—' }}",
+                                ],
+                                classes="instr-sec-value",
+                            )
+
+                    # Rate row: |dT/dt|
+                    trame_html.Div(
+                        children=[
+                            "{{ t.sensor_label_rate }}: "
+                            "{{ Math.abs(dT_dt).toFixed(2) }} "
+                            "{{ t.unit_K_per_s }}",
+                        ],
+                        classes="instr-rate",
+                    )
+
             # ── Footer ─────────────────────────────────────────────
             with vuetify.VFooter(
                 app=True,
@@ -914,6 +1216,9 @@ def build_app(jsonl_path: Path) -> Any:  # noqa: PLR0915 — единая фаб
             state.t = TRANSLATIONS[lang]
             state.fsm_segments = _build_segments_for_state(lang)
             state.fsm_human = TRANSLATIONS[lang]["fsm"].get(state.fsm_state, state.fsm_state)
+            # Sensor status text — пересобрать на новом языке.
+            _, _, status_key = _sensor_status(state.fsm_state, state.T_C)
+            state.instr_status_text = TRANSLATIONS[lang][status_key]
             # Заголовок Vuetify-layout'а — обновить нельзя реактивно
             # (layout.title.set_text() работает только при сборке);
             # игнорируем, так как app_title виден в title-баре, и его
@@ -923,6 +1228,10 @@ def build_app(jsonl_path: Path) -> Any:  # noqa: PLR0915 — единая фаб
         def _on_playing(playing: bool, **_kwargs: Any) -> None:  # type: ignore[no-untyped-def]
             if playing:
                 _ensure_play_task()
+
+    # Привести sensor-state в соответствие первому кадру (state.change
+    # на frame не срабатывает на default-значении до первой мутации).
+    _apply_frame(0)
 
     return server
 
