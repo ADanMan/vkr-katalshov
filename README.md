@@ -231,7 +231,7 @@ entry-points — ядро FLV не нужно править.
 | 3 | Симулятор стенда S1 | ✅ | scipy ODE + simpy FSM + pint + uncertainties + python-control, 3D-визуализация (pyvista+trame), Plotly Dash, статика matplotlib, 8 сценариев, 30+ тестов |
 | 4 | Модуль FLV (фреймворк) | ✅ | Pluggable-фреймворк с 4 точками расширения; YAML DSL + JSONL source; 3 матчера; 2 LLM-роли через OpenRouter; CLI; 35+ тестов |
 | 5 | Эксперименты и статистика | ⏳ | 100+ прогонов, метрики TPR/TNR/FPR/FNR, McNemar, Wilcoxon, Cohen's d, bootstrap CI |
-| 6 | Пояснительная записка | ⏳ | Промежуточный отчёт для научрука готов; основные главы — после Phase 5 |
+| 6 | Пояснительная записка | ⏳ | Основные главы — после Phase 5 |
 | 7 | Презентация и защита | ⏳ | pptx, доклад 7-10 минут, Q&A |
 
 ---
