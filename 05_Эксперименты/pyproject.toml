@@ -1,0 +1,70 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vkr-katalshov-exp"
+version = "0.1.0"
+description = "Phase 5 — экспериментальное исследование метода FLV: батч-прогоны симулятора, расчёт метрик, статистическая обработка по ГОСТ 8.207-76 и GUM. ВКР Катальшова Д.А., К2-81Б."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    {name = "Катальшов Д.А.", email = "adanman386@gmail.com"}
+]
+license = {text = "Academic-only"}
+
+dependencies = [
+    "numpy>=1.26",
+    "pandas>=2.1",
+    "scipy>=1.11",            # bootstrap, t-test, wilcoxon, normaltest
+    "statsmodels>=0.14",      # McNemar, mixed-effects (опц.)
+    "matplotlib>=3.8",
+    "seaborn>=0.13",
+    "openpyxl>=3.1",          # запись results.xlsx
+    "click>=8.1",
+    "rich>=13.7",
+    # Сами симулятор и FLV-модуль подключаются как локальные пакеты
+    # через PYTHONPATH либо `pip install -e ../03_Симулятор -e ../04_FLV`.
+]
+
+[project.optional-dependencies]
+notebook = [
+    "jupyter>=1.0",
+    "ipykernel>=6.27",
+]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "ruff>=0.2",
+    "mypy>=1.8",
+]
+
+[project.scripts]
+exp-run = "experiments.run_all:main"
+exp-analyze = "experiments.analyze:main"
+exp-stats = "experiments.stats:main"
+exp-plots = "experiments.plots:main"
+
+[project.urls]
+Homepage = "https://github.com/ADanMan/vkr-katalshov"
+Repository = "https://github.com/ADanMan/vkr-katalshov"
+
+[tool.setuptools.packages.find]
+include = ["experiments*"]
+exclude = ["tests*", "runs*", "figures*", "notebooks*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -q --strict-markers --cov=experiments --cov-report=term-missing"
+markers = [
+    "unit: юниты модулей",
+    "integration: интеграционные тесты на синтетических данных",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "SIM", "RUF"]
+ignore = ["E501"]
