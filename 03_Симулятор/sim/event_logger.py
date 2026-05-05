@@ -19,11 +19,10 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from io import TextIOBase
 from pathlib import Path
-from typing import Any
-try:
-    from typing import Self  # Python 3.11+
-except ImportError:
-    from typing_extensions import Self  # type: ignore[assignment]
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from typing import Self
 
 from . import config as cfg
 

@@ -47,18 +47,19 @@ class PredicateMatcher(BaseMatcher):
             transitions_index.setdefault((t.from_state, t.to_state), []).append(t)
 
         prev_state: str | None = None
-        prev_event: Event | None = None
+        last_event: Event | None = None  # последнее виденное событие (в любом состоянии)
         for ev in trace.events:
             s = ev.state
             if prev_state is None:
-                prev_state, prev_event = s, ev
+                prev_state = s
+                last_event = ev
                 continue
             if s != prev_state:
-                # переход prev_state → s в момент ev
+                # переход prev_state → s; last_event = последнее событие в prev_state
                 for t in transitions_index.get((prev_state, s), []):
                     if t.guard:
                         ok, ctx = self._eval_predicate(
-                            t.guard, ev, prev_event, spec
+                            t.guard, ev, last_event, spec
                         )
                         if not ok:
                             yield self._make_violation(
@@ -74,7 +75,8 @@ class PredicateMatcher(BaseMatcher):
                                 ),
                                 spec_ref=t.id,
                             )
-                prev_state, prev_event = s, ev
+                prev_state = s
+            last_event = ev  # всегда обновляем — на переходе last_event = последнее в старом состоянии
 
         # ── 2) checks[kind=predicate / range] ─────────────────────────
         for c in spec.checks:
@@ -111,6 +113,11 @@ class PredicateMatcher(BaseMatcher):
                 ctx.setdefault(k, v)
             for k, v in prev_event.signals.items():   # сигналы предыдущего события (T, dT_dt, …)
                 ctx.setdefault(k, v)
+        # Алиасы домена измерений: DSL может использовать N или N_collected
+        if "N_collected" in ctx and "N" not in ctx:
+            ctx["N"] = ctx["N_collected"]
+        if "N" in ctx and "N_collected" not in ctx:
+            ctx["N_collected"] = ctx["N"]
         return ctx
 
     @staticmethod
