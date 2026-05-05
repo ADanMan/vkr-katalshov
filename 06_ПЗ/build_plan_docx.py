@@ -390,11 +390,12 @@ def append_content(doc: Document, blocks: list[dict[str, Any]]) -> None:
 # ──────────────────────────────────────────────────────────────────────
 
 
-def build(src: Path, out: Path) -> None:
+def build(src: Path, out: Path, *, with_title: bool = False) -> None:
     fm, blocks = parse_markdown(src)
     doc = Document()
     _setup_doc(doc)
-    add_title_page(doc, fm)
+    if with_title:
+        add_title_page(doc, fm)
     append_content(doc, blocks)
     out.parent.mkdir(parents=True, exist_ok=True)
     doc.save(str(out))
@@ -405,11 +406,16 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--src", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument(
+        "--with-title",
+        action="store_true",
+        help="Добавить титульный лист по ГОСТ 7.32 (по умолчанию выключено).",
+    )
     args = parser.parse_args(argv)
     if not args.src.exists():
         print(f"Source not found: {args.src}", file=sys.stderr)
         return 2
-    build(args.src, args.out)
+    build(args.src, args.out, with_title=args.with_title)
     return 0
 
 
