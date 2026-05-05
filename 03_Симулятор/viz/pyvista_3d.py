@@ -68,9 +68,9 @@ def build_app(jsonl_path: Path) -> Any:
     """
     try:
         import pyvista as pv  # type: ignore[import-not-found]
+        from pyvista.trame.ui import plotter_ui  # type: ignore[import-not-found]
         from trame.app import get_server  # type: ignore[import-not-found]
         from trame.ui.vuetify import SinglePageWithDrawerLayout  # type: ignore[import-not-found]
-        from trame.widgets import vtk as trame_vtk  # type: ignore[import-not-found]
         from trame.widgets import vuetify  # type: ignore[import-not-found]
     except ImportError as e:
         raise SystemExit(
@@ -84,25 +84,31 @@ def build_app(jsonl_path: Path) -> Any:
     if not track:
         raise SystemExit(f"В {jsonl_path} не нашлось событий с signals.T")
 
-    # Сцена
-    chamber = pv.Cube(center=(0, 0, 0), x_length=1.0, y_length=1.0, z_length=1.0)
-    sample = pv.Cylinder(
-        center=(0, 0, -0.1), direction=(0, 0, 1), radius=0.05, height=0.2,
-    )
-    plotter = pv.Plotter(off_screen=True)
-    plotter.add_mesh(chamber, color="lightgray", opacity=0.15, show_edges=True)
-    sample_actor = plotter.add_mesh(sample, color=_color_from_temperature(track[0][1]))
-    plotter.add_text("INIT", name="state_label", position="upper_left", font_size=14)
-    plotter.set_background("white")
-    plotter.camera_position = [(2.0, 2.0, 2.0), (0, 0, 0), (0, 0, 1)]
-
-    # trame
-    # Явно фиксируем client_type="vue2" — мы используем
-    # vuetify v2 (`trame.ui.vuetify` / `trame.widgets.vuetify`).
+    # trame-сервер. Явно фиксируем client_type="vue2", потому что мы
+    # используем vuetify v2 (`trame.ui.vuetify` / `trame.widgets.vuetify`).
     # В trame >= 3 default переключился на vue3, что приводит к
     # `TypeError: Server using client_type='vue3' while we expect 'vue2'`.
     server = get_server(client_type="vue2")
     state, ctrl = server.state, server.controller
+
+    # Сцена. ВАЖНО: для рендера через `pyvista.trame.ui.plotter_ui`
+    # plotter создаётся БЕЗ `off_screen=True` — иначе VTK отдаёт пустой
+    # render-window и viewport в браузере остаётся чёрным/пустым.
+    # Вместо устаревшей пары `pv.Plotter(off_screen=True)` +
+    # `trame.widgets.vtk.VtkLocalView(plotter.ren_win)` используем
+    # современный helper `plotter_ui(plotter)`, который сам
+    # инициализирует VtkLocalView и подключает к нему рендер-окно.
+    chamber = pv.Cube(center=(0, 0, 0), x_length=1.0, y_length=1.0, z_length=1.0)
+    sample = pv.Cylinder(
+        center=(0, 0, -0.1), direction=(0, 0, 1), radius=0.05, height=0.2,
+    )
+    plotter = pv.Plotter(notebook=False)
+    plotter.add_mesh(chamber, color="lightgray", opacity=0.15, show_edges=True)
+    sample_actor = plotter.add_mesh(sample, color=_color_from_temperature(track[0][1]))
+    plotter.add_text("INIT", name="state_label", position="upper_left", font_size=14, color="black")
+    plotter.set_background("white")
+    plotter.camera_position = [(2.0, 2.0, 2.0), (0, 0, 0), (0, 0, 1)]
+    plotter.reset_camera()
 
     state.frame = 0
     state.frame_max = len(track) - 1
@@ -152,8 +158,15 @@ def build_app(jsonl_path: Path) -> Any:
             )
 
         with layout.content:
-            with vuetify.VContainer(fluid=True):
-                view = trame_vtk.VtkLocalView(plotter.ren_win)
+            with vuetify.VContainer(
+                fluid=True,
+                classes="pa-0 fill-height",
+                style="position: relative; height: calc(100vh - 64px);",
+            ):
+                # Современная PyVista-trame интеграция: создаёт
+                # VtkLocalView, привязанный к plotter, и сама
+                # экспонирует ctrl.view_update / ctrl.view_reset_camera.
+                view = plotter_ui(plotter, mode="trame")
                 ctrl.view_update = view.update
                 vuetify.VSlider(
                     v_model=("frame", 0),
@@ -163,6 +176,10 @@ def build_app(jsonl_path: Path) -> Any:
                     label="Кадр прогона",
                     hide_details=True,
                     dense=True,
+                    style=(
+                        "position: absolute; bottom: 8px; "
+                        "left: 16px; right: 16px; z-index: 10;"
+                    ),
                 )
 
         @state.change("frame")
