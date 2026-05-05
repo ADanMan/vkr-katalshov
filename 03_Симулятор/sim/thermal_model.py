@@ -181,26 +181,8 @@ def simulate_segment(
         idx = max(0, min(idx, len(noise_samples) - 1))
         return float(noise_samples[idx])
 
-    sol = solve_ivp(
-        fun=_heat_eq,
-        t_span=(t0_s, t1_s),
-        y0=[T0_C],
-        method=method,
-        max_step=step_lim,
-        rtol=1e-6,
-        atol=1e-8,
-        dense_output=False,
-        kwargs=dict(
-            u_fn=u_fn,
-            tau_s=tau,
-            T_set_max_C=Tmax,
-            noise_fn=noise_fn,
-        ) if False else None,  # scipy не принимает kwargs так
-        args=(),
-    )
-    # Workaround: scipy.solve_ivp принимает только args=(...) кортежем
-    # позиционных, поэтому переписываем через замыкание:
-
+    # scipy.solve_ivp принимает только args=(...) кортежем позиционных
+    # аргументов, но _heat_eq использует keyword-only. Используем замыкание:
     return _simulate_via_closure(
         t0_s=t0_s,
         t1_s=t1_s,
