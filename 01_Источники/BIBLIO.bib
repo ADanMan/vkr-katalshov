@@ -422,3 +422,444 @@
   note         = {Учебное пособие, поз. 24 Перечня учебных материалов МГТУ им. Н.Э. Баумана для ОПОП 12.03.01/31. Источник перечня: Приложение П4 (04\_P4\_PUM\_12.03.01\_2025.pdf). Опорный текст по формальным методам и логике для главы 2 ВКР.},
   language     = {russian}
 }
+
+% ---------------------------------------------------------------------
+% Phase 1, поток 04_Литература/06_Семантический_разрыв — эмпирические работы,
+% подтверждающие тезис о разрыве между нормативной методикой измерений
+% и фактическим поведением программной модели в ИИС. Используются для
+% обоснования актуальности FLV (Введение и §1.5 ВКР).
+% Все DOI и метаданные верифицированы через CrossRef API на 2026-05-05.
+% ---------------------------------------------------------------------
+
+@article{hatton1997texperiments,
+  author    = {Hatton, L.},
+  title     = {The {T} experiments: errors in scientific software},
+  journal   = {IEEE Computational Science and Engineering},
+  volume    = {4},
+  number    = {2},
+  pages     = {27--38},
+  year      = {1997},
+  publisher = {IEEE},
+  issn      = {1070-9924},
+  doi       = {10.1109/99.609829},
+  url       = {https://doi.org/10.1109/99.609829},
+  note      = {73 цитирования (CrossRef). Открытый PDF на authors' page (leshatton.org). T1: интерфейсные несогласованности 1/7 (Fortran) и 1/37 (C). T2: точность вычислений деградирует с 6 до 1 значащей цифры из-за программных ошибок. До 40\% дефектов статически детектируемы. Базовая работа для тезиса <<нормативный алгоритм $\ne$ работающий код>>. PDF: 01\_Источники/04\_Литература/06\_Семантический\_разрыв/Hatton\_1997\_T\_Experiments.pdf},
+  language  = {english}
+}
+
+@article{soergel2014rampant,
+  author    = {Soergel, David A. W.},
+  title     = {Rampant software errors undermine scientific results},
+  journal   = {F1000Research},
+  volume    = {3},
+  pages     = {303},
+  year      = {2014},
+  publisher = {F1000 Research Ltd},
+  issn      = {2046-1402},
+  doi       = {10.12688/f1000research.5930.1},
+  url       = {https://doi.org/10.12688/f1000research.5930.1},
+  note      = {Open access (CC-BY 4.0). Систематизирует эмпирические оценки распространённости программных ошибок в научном ПО (от 1\% LOC у NASA до 50\% LOC у типового кода). Ключевой тезис: <<если данные прошли через компьютер — большинство научных результатов вероятно содержат ошибки>>. PDF: 01\_Источники/04\_Литература/06\_Семантический\_разрыв/Soergel\_2014\_Rampant\_Software\_Errors.pdf},
+  language  = {english}
+}
+
+@inproceedings{ko2004sixbarriers,
+  author    = {Ko, Amy J. and Myers, Brad A. and Aung, Htet Htet},
+  title     = {Six Learning Barriers in End-User Programming Systems},
+  booktitle = {2004 IEEE Symposium on Visual Languages and Human-Centric Computing (VL/HCC 2004)},
+  pages     = {199--206},
+  year      = {2004},
+  publisher = {IEEE},
+  doi       = {10.1109/VLHCC.2004.47},
+  url       = {https://doi.org/10.1109/VLHCC.2004.47},
+  note      = {340 цитирований (CrossRef). Эмпирическое исследование начинающих программистов (Visual Basic.NET): выделено 6 типов барьеров — design, selection, coordination, use, understanding, information. Прямо обосновывает, почему инженеры-измерители (не программисты по основной профессии — типичные конечные пользователи LabVIEW/TestStand/Python) делают семантические ошибки даже в синтаксически корректном коде. PDF (author page UW): 01\_Источники/04\_Литература/06\_Семантический\_разрыв/Ko\_2004\_Six\_Learning\_Barriers.pdf},
+  language  = {english}
+}
+
+@article{ko2005framework,
+  author    = {Ko, Amy J. and Myers, Brad A.},
+  title     = {A framework and methodology for studying the causes of software errors in programming systems},
+  journal   = {Journal of Visual Languages \& Computing},
+  volume    = {16},
+  number    = {1--2},
+  pages     = {41--84},
+  year      = {2005},
+  month     = feb,
+  publisher = {Elsevier},
+  issn      = {1045-926X},
+  doi       = {10.1016/j.jvlc.2004.08.003},
+  url       = {https://doi.org/10.1016/j.jvlc.2004.08.003},
+  note      = {142 цитирования (CrossRef). Каркас классификации программных ошибок по причинно-следственным цепочкам (chain of cognitive breakdowns). Используется как методологическая база для каталога нарушений Phase 2 ВКР. Открытый PDF: faculty.washington.edu/ajko. Файл: 01\_Источники/04\_Литература/06\_Семантический\_разрыв/Ko\_2005\_Software\_Errors\_Framework.pdf},
+  language  = {english}
+}
+
+@article{fanwei2019timing,
+  author    = {Fan, Wei and Jin, Huaxue and Wang, Yin and Fu, Yuchen},
+  title     = {The influence of software timing error on measurement accuracy of data acquisition},
+  journal   = {Measurement and Control},
+  volume    = {52},
+  number    = {7--8},
+  pages     = {1008--1016},
+  year      = {2019},
+  month     = sep,
+  publisher = {SAGE Publications},
+  issn      = {0020-2940},
+  doi       = {10.1177/0020294019858093},
+  url       = {https://doi.org/10.1177/0020294019858093},
+  note      = {Open access (CC-BY 4.0). Прямой эмпирический результат: на одном и том же стенде (RIGOL DG1022 + DS1102C + PCI7489) три способа таймирования в ПО (VB Timer, multimedia timer, QueryPerformanceCounter) дают воспроизводимость измерений 84.22\% против 0.62\% — то есть <<правильный>> по нормативной методике алгоритм даёт грубо неверный результат из-за ошибки выбора программного механизма таймирования. Канонический пример семантического разрыва. CLOSED — open-access PDF на journals.sagepub.com.},
+  language  = {english}
+}
+
+@article{paltenghi2022quantum,
+  author    = {Paltenghi, Matteo and Pradel, Michael},
+  title     = {Bugs in Quantum computing platforms: an empirical study},
+  journal   = {Proceedings of the ACM on Programming Languages},
+  volume    = {6},
+  number    = {OOPSLA1},
+  pages     = {1--27},
+  year      = {2022},
+  month     = apr,
+  publisher = {Association for Computing Machinery},
+  issn      = {2475-1421},
+  doi       = {10.1145/3527330},
+  url       = {https://doi.org/10.1145/3527330},
+  note      = {Open access (CC-BY 4.0), 53 цитирования. 223 реальных бага из 18 open-source платформ квантовых вычислений; 39.9\% — domain-specific (квантовые), большинство манифестируются как <<неожиданный выход>>, а не как краш — то есть проходят синтаксические проверки и компилятор. Прямой аналог нашей ситуации в ИИС. PDF (arXiv 2110.14560): 01\_Источники/04\_Литература/06\_Семантический\_разрыв/Paltenghi\_2022\_Bugs\_Quantum\_Computing.pdf},
+  language  = {english}
+}
+
+@inproceedings{nguyenhoan2010survey,
+  author    = {Nguyen-Hoan, Luke and Flint, Shayne and Sankaranarayana, Ramesh},
+  title     = {A survey of scientific software development},
+  booktitle = {Proceedings of the 2010 ACM-IEEE International Symposium on Empirical Software Engineering and Measurement (ESEM '10)},
+  pages     = {1--10},
+  year      = {2010},
+  publisher = {ACM},
+  address   = {New York, NY, USA},
+  doi       = {10.1145/1852786.1852802},
+  url       = {https://doi.org/10.1145/1852786.1852802},
+  note      = {42 цитирования. Опрос 60+ научных программистов: дефицит формальных требований, отсутствие систематического тестирования, ad-hoc валидация результатов. Источник статистики для §1.5 ВКР по практикам разработки измерительного ПО. CLOSED (ACM DL); MGTU доступ.},
+  language  = {english}
+}
+
+@article{popoola2021badsmells,
+  author    = {Popoola, Saheed and Zhao, Xin and Gray, Jeff},
+  title     = {Evolution of Bad Smells in {LabVIEW} Graphical Models},
+  journal   = {Journal of Object Technology},
+  volume    = {20},
+  number    = {1},
+  pages     = {1:1--1:14},
+  year      = {2021},
+  publisher = {AITO --- Association Internationale pour les Technologies Objets},
+  issn      = {1660-1769},
+  doi       = {10.5381/jot.2021.20.1.a1},
+  url       = {https://doi.org/10.5381/jot.2021.20.1.a1},
+  note      = {Open access (JOT). Полуавтоматический анализ 81 LabVIEW-модели из 10 GitHub-репозиториев: документирована эволюция 7 типов <<bad smells>> (Wire Tunnel Crossing, Long Wire, Cluttered Block Diagram и др.), которые компилятор LabVIEW не отлавливает, но которые приводят к ошибкам логики и измерений. Прямое подтверждение тезиса о семантическом разрыве в LabVIEW-стек. PDF: 01\_Источники/04\_Литература/03\_LabVIEW\_TestStand/Popoola\_2021\_Bad\_Smells\_LabVIEW.pdf},
+  language  = {english}
+}
+
+@article{zhao2024labview,
+  author    = {Zhao, Xin and Rai, Gurshan and Popoola, Saheed and Gray, Jeff},
+  title     = {Ask or tell: An empirical study on modeling challenges from {LabVIEW} community},
+  journal   = {Journal of Computer Languages},
+  volume    = {80},
+  pages     = {101284},
+  year      = {2024},
+  month     = aug,
+  publisher = {Elsevier},
+  issn      = {2590-1184},
+  doi       = {10.1016/j.cola.2024.101284},
+  url       = {https://doi.org/10.1016/j.cola.2024.101284},
+  note      = {Двойное эмпирическое исследование: ML-анализ 162\,000+ постов на forums.ni.com + опрос 60+ инженеров. Главный класс трудностей в LabVIEW — coding practice (то есть программирование/моделирование, а не интерфейс прибора). Подтверждает массовость семантических ошибок в индустрии. CLOSED (Elsevier); MGTU доступ.},
+  language  = {english}
+}
+
+@article{gracheva2006attestatsiya,
+  author    = {Грачева, Н. О.},
+  title     = {Методы метрологической аттестации программного обеспечения средств измерений},
+  journal   = {Вестник Ульяновского государственного технического университета},
+  year      = {2006},
+  number    = {2 (34)},
+  issn      = {1674-7016},
+  url       = {https://cyberleninka.ru/article/n/metody-metrologicheskoy-attestatsii-programmnogo-obespecheniya-sredstv-izmereniy},
+  note      = {Открытый доступ через CyberLeninka. Российская работа по методам аттестации ПО средств измерений: погрешности, вносимые алгоритмом и программной реализацией, рассматриваются как самостоятельный источник недостоверности результата. Поддерживает русскоязычную линию обоснования FLV (Введение). PDF: 01\_Источники/04\_Литература/02\_Метрология/Gracheva\_2006\_Metrologicheskaya\_Attestatsiya\_PO.pdf},
+  language  = {russian}
+}
+
+% ---------------------------------------------------------------------
+% Phase 1, поток 04_Литература/03_LabVIEW_TestStand — экосистема NI.
+% Используется в главе 1 «Аналитический обзор» и главе 4 «Сравнение».
+% Часть работ — открытые white papers / manual NI; книги (Travis-Kring,
+% Bitter et al.) — закрытые, доступ через ЭБС МГТУ.
+% Источники метаданных: NI.com, ISBN/WorldCat, CyberLeninka citation_*.
+% ---------------------------------------------------------------------
+
+@manual{ni2020vianalyzer,
+  organization = {National Instruments},
+  title        = {LabVIEW VI Analyzer Toolkit User Guide},
+  number       = {373631D-01},
+  year         = {2020},
+  pages        = {13},
+  url          = {https://download.ni.com/support/manuals/373631d.pdf},
+  note         = {Описание автоматизированных проверок графического кода LabVIEW (более 90 встроенных тестов): API ссылок, наименования, сложность диаграмм. Используется как промышленный аналог для сравнения с FLV в части static-analysis. PDF: 01\_Источники/04\_Литература/03\_LabVIEW\_TestStand/NI\_VI\_Analyzer\_Toolkit\_UserGuide.pdf},
+  language     = {english}
+}
+
+@misc{ni2024teststandsa,
+  author       = {{National Instruments}},
+  title        = {{NI TestStand Sequence Analyzer} (Online Documentation)},
+  year         = {2024},
+  howpublished = {Online},
+  url          = {https://www.ni.com/docs/en-US/bundle/teststand/page/teststand-sequence-analyzer.html},
+  note         = {Промышленный аналог: статический и стилистический анализатор последовательностей TestStand. Дата обращения: 2026-05-05. Архивирование через web.archive.org перед сдачей ПЗ.},
+  language     = {english}
+}
+
+@book{travis2006labview,
+  author    = {Travis, Jeffrey and Kring, Jim},
+  title     = {LabVIEW for Everyone: Graphical Programming Made Easy and Fun},
+  edition   = {3rd},
+  year      = {2006},
+  publisher = {Prentice Hall},
+  address   = {Upper Saddle River, NJ},
+  pages     = {981},
+  isbn      = {978-0-13-185672-1},
+  note      = {Базовый учебник по LabVIEW. CLOSED — доступ через ЭБС МГТУ или Pearson. Используется во введении главы 1 ВКР для определения LabVIEW и Virtual Instrument.},
+  language  = {english}
+}
+
+@book{bitter2007labview,
+  author    = {Bitter, Rick and Mohiuddin, Taqi and Nawrocki, Matt},
+  title     = {{LabVIEW}: Advanced Programming Techniques},
+  edition   = {2nd},
+  year      = {2007},
+  publisher = {CRC Press},
+  address   = {Boca Raton, FL},
+  pages     = {520},
+  isbn      = {978-0-8493-3325-5},
+  note      = {Архитектурные паттерны LabVIEW: state machine, queued message handler, .NET interop. Обоснование выбора FSM-формализма для DSL ВКР. CLOSED — ЭБС МГТУ или CRC Press. Резервная копия (Internet Archive) — для контрольной сверки страниц.},
+  language  = {english}
+}
+
+@article{simonov2019labview,
+  author    = {Simonov, P. I. and Kubankov, Yu. A. and Ignatova, V. N.},
+  title     = {Automation of measurements of signals of aircraft transponders in information measuring stands on the basis of standard {VPP} and {SDR} technologies},
+  journal   = {T-Comm --- Телекоммуникации и Транспорт},
+  year      = {2019},
+  volume    = {13},
+  number    = {2},
+  pages     = {70--75},
+  issn      = {2072-8735},
+  publisher = {Издательский дом «Медиа Паблишер»},
+  url       = {https://cyberleninka.ru/article/n/automation-of-measurements-of-signals-of-aircraft-transponders-in-information-measuring-stands-on-the-basis-of-standard-vp-and-sdr},
+  note      = {ВАК. PDF: 01\_Источники/04\_Литература/03\_LabVIEW\_TestStand/Simonov\_2019\_LabVIEW\_Transponders.pdf. Российский пример применения LabVIEW + SDR в ИИС. Используется для §1.1 ВКР как иллюстрация отечественной практики.},
+  language  = {english}
+}
+
+@article{manonina2012labview,
+  author    = {Манонина, И. В.},
+  title     = {Применение программы {LabVIEW} для изучения вопросов поверки измерительных приборов},
+  journal   = {T-Comm --- Телекоммуникации и Транспорт},
+  year      = {2012},
+  number    = {8},
+  pages     = {50--52},
+  issn      = {2072-8735},
+  publisher = {Издательский дом «Медиа Паблишер»},
+  url       = {https://cyberleninka.ru/article/n/primenenie-programmy-labview-dlya-izucheniya-voprosov-poverki-izmeritelnyh-priborov},
+  note      = {ВАК. Применение LabVIEW для автоматизации поверки СИ — связь с темой ВКР. PDF: 01\_Источники/04\_Литература/03\_LabVIEW\_TestStand/Manonina\_2012\_LabVIEW\_Poverka.pdf},
+  language  = {russian}
+}
+
+% Внимание: запись `popoola2021badsmells` уже есть в секции 06_Семантический_разрыв
+% (используется и для §1.4, и для §1.5; PDF лежит в 03_LabVIEW_TestStand/).
+
+% ---------------------------------------------------------------------
+% Phase 1, поток 04_Литература/04_FSM_Timed — конечные / тайм- /
+% гибридные автоматы и автоматное программирование.
+% Часть работ открытые (Behrmann UPPAAL, Lee-Seshia, Henzinger).
+% Замечание: Alur1994 уже добавлен ранее (alur1994theory) — не дублируем.
+% ---------------------------------------------------------------------
+
+@incollection{behrmann2004uppaal,
+  author    = {Behrmann, Gerd and David, Alexandre and Larsen, Kim G.},
+  title     = {A Tutorial on {Uppaal}},
+  booktitle = {Formal Methods for the Design of Real-Time Systems (SFM-RT 2004)},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {3185},
+  pages     = {200--236},
+  year      = {2004},
+  publisher = {Springer Berlin Heidelberg},
+  address   = {Berlin, Heidelberg},
+  isbn      = {978-3-540-23068-7},
+  doi       = {10.1007/978-3-540-30080-9_7},
+  url       = {https://doi.org/10.1007/978-3-540-30080-9_7},
+  note      = {Open access — авторская копия на uppaal.org/texts/new-tutorial.pdf. PDF: 01\_Источники/04\_Литература/04\_FSM\_Timed/Behrmann\_2004\_UPPAAL\_Tutorial.pdf. 48 стр.},
+  language  = {english}
+}
+
+@book{baier2008principles,
+  author    = {Baier, Christel and Katoen, Joost-Pieter},
+  title     = {Principles of Model Checking},
+  year      = {2008},
+  publisher = {The MIT Press},
+  address   = {Cambridge, MA},
+  pages     = {975},
+  isbn      = {978-0-262-02649-9},
+  note      = {Стандартный учебник по model checking. CLOSED — ЭБС МГТУ или mitpress.mit.edu. Используется для определения LTS, traces и темпоральных свойств в §2.1, 2.3 ВКР.},
+  language  = {english}
+}
+
+@book{lee2017embedded,
+  author    = {Lee, Edward A. and Seshia, Sanjit A.},
+  title     = {Introduction to Embedded Systems: A Cyber-Physical Systems Approach},
+  edition   = {2nd},
+  year      = {2017},
+  publisher = {The MIT Press},
+  address   = {Cambridge, MA},
+  pages     = {561},
+  isbn      = {978-0-262-53381-2},
+  url       = {https://ptolemy.berkeley.edu/books/leeseshia/},
+  note      = {Open access (digital v2.2): авторы выложили PDF на ptolemy.berkeley.edu для свободного некоммерческого использования. PDF: 01\_Источники/04\_Литература/04\_FSM\_Timed/Lee\_Seshia\_2017\_Embedded\_Systems.pdf. Используется как формальная база разделов 1.2, 2.1.},
+  language  = {english}
+}
+
+@inproceedings{henzinger1996hybrid,
+  author    = {Henzinger, Thomas A.},
+  title     = {The Theory of Hybrid Automata},
+  booktitle = {Proceedings of the 11th Annual {IEEE} Symposium on Logic in Computer Science (LICS '96)},
+  pages     = {278--292},
+  year      = {1996},
+  publisher = {IEEE Computer Society Press},
+  address   = {New Brunswick, NJ},
+  doi       = {10.1109/LICS.1996.561342},
+  url       = {https://doi.org/10.1109/LICS.1996.561342},
+  note      = {Author preprint (UC Berkeley/Bremen mirror). PDF: 01\_Источники/04\_Литература/04\_FSM\_Timed/Henzinger\_1996\_Hybrid\_Automata.pdf. 30 стр. (расширенная версия). Используется в §2.2 как обобщение Timed Automata на непрерывные переменные.},
+  language  = {english}
+}
+
+@article{shalyto2009avtomatnoe,
+  author    = {Шалыто, А. А. and Мандриков, Е. А. and Чеботарева, Ю. К.},
+  title     = {Автоматное программирование и параллельные вычисления},
+  journal   = {Известия высших учебных заведений. Приборостроение},
+  year      = {2009},
+  volume    = {52},
+  number    = {10},
+  pages     = {21--29},
+  issn      = {0021-3454},
+  publisher = {СПбГУ ИТМО},
+  url       = {https://cyberleninka.ru/article/n/avtomatnoe-programmirovanie-i-parallelnye-vychisleniya},
+  note      = {ВАК. CC BY. Автоматное программирование (SWITCH-технология А.А. Шалыто) — отечественная школа. PDF: 01\_Источники/04\_Литература/04\_FSM\_Timed/Shalyto\_2009\_Avtomatnoe\_Programmirovanie.pdf. Используется в §1.2 ВКР как методологическая база DSL.},
+  language  = {russian}
+}
+
+@article{belov2014chasy,
+  author    = {Белов, И. В. and Гонцова, О. Ф.},
+  title     = {Разработка управления электронными часами на основе теории автоматов},
+  journal   = {Экономика и социум},
+  year      = {2014},
+  number    = {2-5 (11)},
+  pages     = {254--258},
+  url       = {https://cyberleninka.ru/article/n/razrabotka-upravleniya-elektronnymi-chasami-na-osnove-teorii-avtomatov},
+  note      = {РИНЦ. CC BY. Прикладной пример FSM для управления электронным устройством. PDF: 01\_Источники/04\_Литература/04\_FSM\_Timed/Belov\_2014\_Chasy\_FSM.pdf. Иллюстративный материал для §2.1.},
+  language  = {russian}
+}
+
+% ---------------------------------------------------------------------
+% Phase 1, поток 04_Литература/05_DSL_формализация — DSL и формализация
+% спецификаций. Глава 2 «Метод», глава 3 «Реализация».
+% ---------------------------------------------------------------------
+
+@book{fowler2010dsl,
+  author    = {Fowler, Martin},
+  title     = {Domain-Specific Languages},
+  year      = {2010},
+  publisher = {Addison-Wesley Professional},
+  address   = {Boston, MA},
+  pages     = {640},
+  isbn      = {978-0-321-71294-3},
+  url       = {https://martinfowler.com/books/dsl.html},
+  note      = {Каноническая работа Фаулера по DSL: external/internal DSL, semantic model, language workbenches. CLOSED — ЭБС МГТУ или Pearson. Часть глав открыта на martinfowler.com/books/dsl.html. Используется в §2.4 ВКР.},
+  language  = {english}
+}
+
+@book{voelter2013dsl,
+  author    = {Voelter, Markus},
+  title     = {{DSL} Engineering: Designing, Implementing and Using Domain-Specific Languages},
+  year      = {2013},
+  publisher = {CreateSpace Independent Publishing Platform},
+  address   = {dslbook.org},
+  pages     = {558},
+  isbn      = {978-1-4812-1858-0},
+  url       = {http://voelter.de/dslbook/markusvoelter-dslengineering-1.0.pdf},
+  note      = {Open access — автор официально выложил книгу в свободный доступ на voelter.de с пометкой «Free for personal use». PDF: 01\_Источники/04\_Литература/05\_DSL\_формализация/Voelter\_2013\_DSL\_Engineering.pdf. Используется в §2.4 и §3.2 ВКР.},
+  language  = {english}
+}
+
+@article{mernik2005when,
+  author    = {Mernik, Marjan and Heering, Jan and Sloane, Anthony M.},
+  title     = {When and How to Develop Domain-Specific Languages},
+  journal   = {ACM Computing Surveys},
+  volume    = {37},
+  number    = {4},
+  pages     = {316--344},
+  year      = {2005},
+  month     = dec,
+  publisher = {Association for Computing Machinery},
+  issn      = {0360-0300},
+  doi       = {10.1145/1118890.1118892},
+  url       = {https://doi.org/10.1145/1118890.1118892},
+  note      = {Open access copy: inkytonik.github.io/assets/papers/compsurv05.pdf (Sloane personal page). PDF: 01\_Источники/04\_Литература/05\_DSL\_формализация/Mernik\_2005\_When\_How\_DSL.pdf. 44 стр. Систематический обзор когда и как создавать DSL — основа §2.4 ВКР.},
+  language  = {english}
+}
+
+@misc{omg2019sysml,
+  author       = {{Object Management Group}},
+  title        = {{OMG} Systems Modeling Language ({SysML}{\textregistered}), Version 1.6},
+  year         = {2019},
+  howpublished = {Specification},
+  number       = {formal/2019-11-01},
+  url          = {https://www.omg.org/spec/SysML/1.6/},
+  note         = {OMG specification. Открытый доступ через omg.org. Используется в §1.4 ВКР как контекст про существующие языки моделирования технических систем.},
+  language     = {english}
+}
+
+@article{botov2013dsl,
+  author    = {Ботов, Д. С.},
+  title     = {Обзор современных средств создания и поддержки предметно-ориентированных языков программирования},
+  journal   = {Вестник Южно-Уральского государственного университета. Серия: Компьютерные технологии, управление, радиоэлектроника},
+  year      = {2013},
+  volume    = {13},
+  number    = {1},
+  pages     = {10--15},
+  issn      = {1991-976X},
+  publisher = {Южно-Уральский государственный университет},
+  url       = {https://cyberleninka.ru/article/n/obzor-sovremennyh-sredstv-sozdaniya-i-podderzhki-predmetno-orientirovannyh-yazykov-programmirovaniya},
+  note      = {ВАК. CC BY. Российский обзор инструментов DSL (Xtext, MPS, Spoofax). PDF: 01\_Источники/04\_Литература/05\_DSL\_формализация/Botov\_2013\_DSL\_Obzor.pdf. Раздел 2.4 ВКР.},
+  language  = {russian}
+}
+
+@article{stepulenok2010dsl,
+  author    = {Степулёнок, Д. О.},
+  title     = {Модель и методы реализации предметно-ориентированных языков},
+  journal   = {Компьютерные инструменты в образовании},
+  year      = {2010},
+  number    = {4},
+  pages     = {21--29},
+  issn      = {2071-2340},
+  publisher = {СПбГЭТУ «ЛЭТИ»},
+  url       = {https://cyberleninka.ru/article/n/model-i-metody-realizatsii-predmetno-orientirovannyh-yazykov},
+  note      = {РИНЦ. CC BY. Семантические модели DSL и архитектура парсера. PDF: 01\_Источники/04\_Литература/05\_DSL\_формализация/Stepulenok\_2010\_DSL\_Model.pdf. Раздел 2.4 и 3.2 ВКР.},
+  language  = {russian}
+}
+
+@article{vorobyev2014dsl,
+  author    = {Воробьёв, А. Ю.},
+  title     = {Предметно-ориентированный язык программирования для разработки программного обеспечения для тестирования электронных устройств},
+  journal   = {Математические структуры и моделирование},
+  year      = {2014},
+  number    = {4 (32)},
+  pages     = {147--161},
+  issn      = {2222-8772},
+  publisher = {Омский государственный университет им. Ф. М. Достоевского},
+  url       = {https://cyberleninka.ru/article/n/predmetno-orientirovannyy-yazyk-programmirovaniya-dlya-razrabotki-programmnogo-obespecheniya-dlya-testirovaniya-elektronnyh},
+  note      = {РИНЦ. CC BY. Прямой методологический аналог DSL ВКР: DSL для автоматизированного тестирования электроники. PDF: 01\_Источники/04\_Литература/05\_DSL\_формализация/Vorobyev\_2014\_DSL\_Testing.pdf. Раздел 1.4, 2.4 ВКР.},
+  language  = {russian}
+}
