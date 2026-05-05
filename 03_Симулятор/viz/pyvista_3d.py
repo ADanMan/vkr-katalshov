@@ -97,7 +97,11 @@ def build_app(jsonl_path: Path) -> Any:
     plotter.camera_position = [(2.0, 2.0, 2.0), (0, 0, 0), (0, 0, 1)]
 
     # trame
-    server = get_server()
+    # Явно фиксируем client_type="vue2" — мы используем
+    # vuetify v2 (`trame.ui.vuetify` / `trame.widgets.vuetify`).
+    # В trame >= 3 default переключился на vue3, что приводит к
+    # `TypeError: Server using client_type='vue3' while we expect 'vue2'`.
+    server = get_server(client_type="vue2")
     state, ctrl = server.state, server.controller
 
     state.frame = 0
