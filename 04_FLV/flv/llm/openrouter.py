@@ -15,7 +15,10 @@ Gemini, GPT, Claude, DeepSeek, Qwen и т.д. через `openai`-SDK,
 * `qwen/qwen3.6-flash` — open-weight, китайская научная база.
 
 API-ключ берётся из переменной окружения `OPENROUTER_API_KEY`
-(контракт security.md: никогда не хардкодить ключи).
+(контракт security.md: никогда не хардкодить ключи). Если в текущей
+рабочей директории или в любой родительской лежит файл `.env` с
+ключом — он подхватится автоматически через python-dotenv. Это
+удобно для интерактивных запусков из IDE/notebook без `export`.
 
 Если зависимость `openai` или `tenacity` не установлена,
 конструктор падает с осмысленным сообщением — это вынуждает
@@ -30,6 +33,22 @@ from dataclasses import dataclass, field
 from typing import Any
 
 logger = logging.getLogger(__name__)
+
+
+def _try_load_dotenv() -> None:
+    """Подхватить ключи из .env, если python-dotenv установлен.
+
+    Не падаем, если пакет отсутствует — у пользователя может быть
+    `export OPENROUTER_API_KEY=…` в shell. Ищем .env от cwd вверх по
+    дереву (стандартный поиск python-dotenv).
+    """
+    try:
+        from dotenv import load_dotenv  # type: ignore[import-not-found]
+    except ImportError:
+        logger.debug("python-dotenv не установлен — .env не подхватится")
+        return
+    # override=False — реальный env побеждает над .env (12-factor).
+    load_dotenv(override=False)
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
@@ -60,9 +79,10 @@ class OpenRouterProvider:
     name: str = field(default="openrouter", init=False)
 
     def __post_init__(self) -> None:
-        # API-ключ — приоритет: явный аргумент > env. Никогда не
-        # принимаем хардкод в коде (security.md).
+        # API-ключ — приоритет: явный аргумент > env > .env.
+        # Никогда не принимаем хардкод в коде (security.md).
         if not self.api_key:
+            _try_load_dotenv()
             self.api_key = os.environ.get("OPENROUTER_API_KEY")
         # Lazy lookup tenacity / openai — модуль может импортироваться
         # без них (например, для тестов с MockProvider).
