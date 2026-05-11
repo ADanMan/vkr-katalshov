@@ -55,7 +55,10 @@ exclude = ["tests*", "runs*", "figures*", "notebooks*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra -q --strict-markers --cov=experiments --cov-report=term-missing"
+# По умолчанию -- без --cov, чтобы pytest работал без pytest-cov
+# (нужен только для опционального покрытия). Запуск с покрытием:
+#   pytest --cov=experiments --cov-report=term-missing
+addopts = "-ra -q --strict-markers"
 markers = [
     "unit: юниты модулей",
     "integration: интеграционные тесты на синтетических данных",
